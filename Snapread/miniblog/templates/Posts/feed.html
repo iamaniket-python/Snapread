@@ -1,0 +1,164 @@
+{% extends 'Base/base.html' %}
+{% block title %}Home — SnapRead{% endblock %}
+
+{% block content %}
+
+<!-- Tags Bar -->
+<div class="tags-bar">
+  <div class="tags-bar-inner">
+    <a href="" class="tag-pill {% if not request.GET.tag %}active{% endif %}">For you</a>
+    <a href="?trending=true" class="tag-pill {% if request.GET.trending %}active{% endif %}">Trending</a>
+    {% for tag in tags %}
+      <a href="?tag={{ tag.name }}"
+         class="tag-pill {% if request.GET.tag == tag.name %}active{% endif %}">
+        {{ tag.name }}
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Main Feed + Sidebar -->
+<div class="feed-layout">
+
+  <!-- Posts -->
+  <div>
+    {% if posts %}
+      <div class="post-list">
+        {% for post in posts %}
+        <article class="post-card">
+
+          <div>
+            <!-- Author -->
+            <div class="post-card-meta">
+              <img src="{{ post.author.profile.profile_image.url|default:'/static/img/avatar.png' }}"
+                   alt="{{ post.author.username }}" class="post-card-avatar" />
+              <a href="{% url 'profile' post.author.username %}" class="post-card-author">
+                {{ post.author.username }}
+              </a>
+              <span class="post-card-dot">·</span>
+              <span class="text-muted text-sm">{{ post.published_at|date:"M d, Y" }}</span>
+            </div>
+
+            <!-- Title & Excerpt -->
+            <h2><a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a></h2>
+            <p class="post-card-excerpt">{{ post.content|truncatewords:30|striptags }}</p>
+
+            <!-- Footer -->
+            <div class="post-card-footer">
+              <div class="post-card-info">
+                {% if post.category %}
+                  <a href="?category={{ post.category.slug }}" class="post-card-tag">
+                    {{ post.category.name }}
+                  </a>
+                {% endif %}
+                <span>{{ post.read_time }} min read</span>
+                <span>{{ post.views }} views</span>
+              </div>
+
+              <div class="post-card-actions">
+                <!-- Bookmark -->
+                {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'bookmark_toggle' post.slug %}">
+                  {% csrf_token %}
+                  <button type="submit" class="icon-btn {% if post.is_bookmarked %}active{% endif %}" title="Bookmark">
+                    <svg width="16" height="16" fill="{% if post.is_bookmarked %}currentColor{% else %}none{% endif %}"
+                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  </button>
+                </form>
+                {% endif %}
+
+                <!-- More -->
+                <button class="icon-btn" title="More">
+                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                    <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thumbnail -->
+          {% if post.featured_image %}
+          <a href="{% url 'post_detail' post.slug %}">
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="post-card-thumb" />
+          </a>
+          {% endif %}
+
+        </article>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if posts.has_other_pages %}
+      <div style="display:flex;justify-content:center;gap:8px;padding:40px 0;">
+        {% if posts.has_previous %}
+          <a href="?page={{ posts.previous_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}"
+             class="btn btn-outline btn-sm">← Previous</a>
+        {% endif %}
+        <span style="padding:6px 14px;font-size:13px;color:var(--gray-600);">
+          Page {{ posts.number }} of {{ posts.paginator.num_pages }}
+        </span>
+        {% if posts.has_next %}
+          <a href="?page={{ posts.next_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}"
+             class="btn btn-outline btn-sm">Next →</a>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    {% else %}
+      <div class="empty-state">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2z"/>
+        </svg>
+        <p>No stories yet. <a href="{% url 'post_create' %}" style="text-decoration:underline;">Write the first one →</a></p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="feed-sidebar">
+
+    {% if not user.is_authenticated %}
+    <div class="sidebar-section" style="background:var(--gray-50);padding:24px;border-radius:4px;margin-bottom:32px;">
+      <p style="font-family:var(--font-serif);font-size:22px;font-weight:700;margin-bottom:8px;">Start reading.</p>
+      <p style="font-size:14px;color:var(--gray-600);margin-bottom:16px;">Create a free account to follow authors, clap for stories, and more.</p>
+      <a href="{% url 'register' %}" class="btn btn-dark btn-full" style="border-radius:4px;">Get started — it's free</a>
+    </div>
+    {% endif %}
+
+    <!-- Recommended Tags -->
+    <div class="sidebar-section">
+      <p class="sidebar-title">Recommended topics</p>
+      {% for tag in tags|slice:":12" %}
+        <a href="?tag={{ tag.name }}" class="sidebar-tag">{{ tag.name }}</a>
+      {% endfor %}
+    </div>
+
+    <!-- Who to follow -->
+    {% if suggested_authors %}
+    <div class="sidebar-section">
+      <p class="sidebar-title">Who to follow</p>
+      {% for profile in suggested_authors %}
+      <div class="sidebar-author">
+        <img src="{{ profile.profile_image.url|default:'/static/img/avatar.png' }}" alt="{{ profile.user.username }}" />
+        <div>
+          <p class="sidebar-author-name">{{ profile.user.username }}</p>
+          <p class="sidebar-author-bio">{{ profile.bio|truncatechars:60 }}</p>
+        </div>
+        {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'follow_user' profile.user.username %}" style="margin-left:auto;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline btn-sm">Follow</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </aside>
+</div>
+
+{% endblock %}

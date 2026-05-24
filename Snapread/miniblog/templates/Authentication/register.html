@@ -1,0 +1,61 @@
+{% extends 'Base/base.html' %}
+{% block title %}Create account — SnapRead{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-box">
+
+    <div class="auth-logo">SnapRead</div>
+    <p class="auth-tagline">Join millions of readers and writers.</p>
+
+    <form method="POST" action="{% url 'register' %}">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control {% if form.username.errors %}error{% endif %}"
+               placeholder="Choose a username" value="{{ form.username.value|default:'' }}" autofocus />
+        {% if form.username.errors %}<p class="form-error">{{ form.username.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control {% if form.email.errors %}error{% endif %}"
+               placeholder="you@example.com" value="{{ form.email.value|default:'' }}" />
+        {% if form.email.errors %}<p class="form-error">{{ form.email.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control {% if form.password.errors %}error{% endif %}"
+               placeholder="Min. 8 characters" />
+        {% if form.password.errors %}<p class="form-error">{{ form.password.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input type="password" name="password2" class="form-control {% if form.password2.errors %}error{% endif %}"
+               placeholder="Repeat password" />
+        {% if form.password2.errors %}<p class="form-error">{{ form.password2.errors.0 }}</p>{% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="form-error" style="margin-bottom:14px;">{{ form.non_field_errors.0 }}</div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-dark btn-full" style="padding:14px;">
+        Create account
+      </button>
+
+      <p class="form-hint" style="text-align:center; margin-top:12px;">
+        By creating an account you agree to our Terms of Service.
+      </p>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="{% url 'login' %}">Sign in</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

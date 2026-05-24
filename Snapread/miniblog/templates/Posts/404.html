@@ -1,0 +1,10 @@
+{% extends 'Base/base.html' %}
+{% block title %}Page not found — Medium{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:100px 24px;">
+  <p style="font-size:80px;font-weight:700;font-family:var(--font-serif);color:var(--gray-200);">404</p>
+  <h1 style="font-size:26px;font-weight:700;margin-bottom:12px;">Page not found</h1>
+  <p style="color:var(--gray-600);margin-bottom:28px;">The story you're looking for doesn't exist or has been removed.</p>
+  <a href="{% url 'feed' %}" class="btn btn-dark">Go home</a>
+</div>
+{% endblock %}

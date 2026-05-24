@@ -1,0 +1,78 @@
+{% extends 'Base/base.html' %}
+{% block title %}Notifications — Medium{% endblock %}
+
+{% block content %}
+<div class="notif-wrap">
+
+  <div class="notif-header">
+    <h1 class="notif-title">Notifications</h1>
+    {% if notifications %}
+    <form method="POST" action="{% url 'notifications_read_all' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-ghost btn-sm">Mark all as read</button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if notifications %}
+    {% for notif in notifications %}
+    <div class="notif-item {% if not notif.is_read %}unread{% endif %}">
+
+      <!-- Icon by type -->
+      <div class="notif-icon">
+        {% if notif.notif_type == 'clap' %}👏
+        {% elif notif.notif_type == 'comment' %}💬
+        {% elif notif.notif_type == 'reply' %}↩
+        {% elif notif.notif_type == 'follow' %}👤
+        {% elif notif.notif_type == 'mention' %}@
+        {% endif %}
+      </div>
+
+      <div style="flex:1;">
+        <p class="notif-body">
+          <strong>{{ notif.sender.username }}</strong>
+
+          {% if notif.notif_type == 'clap' %}
+            clapped for your story
+            {% if notif.post %}<a href="{% url 'post_detail' notif.post.slug %}" style="font-weight:600;">"{{ notif.post.title }}"</a>{% endif %}
+
+          {% elif notif.notif_type == 'comment' %}
+            commented on your story
+            {% if notif.post %}<a href="{% url 'post_detail' notif.post.slug %}#comments" style="font-weight:600;">"{{ notif.post.title }}"</a>{% endif %}
+
+          {% elif notif.notif_type == 'reply' %}
+            replied to your comment on
+            {% if notif.post %}<a href="{% url 'post_detail' notif.post.slug %}#comments" style="font-weight:600;">"{{ notif.post.title }}"</a>{% endif %}
+
+          {% elif notif.notif_type == 'follow' %}
+            {% if notif.post %}
+              published a new story: <a href="{% url 'post_detail' notif.post.slug %}" style="font-weight:600;">"{{ notif.post.title }}"</a>
+            {% else %}
+              started following you
+            {% endif %}
+
+          {% elif notif.notif_type == 'mention' %}
+            mentioned you in
+            {% if notif.post %}<a href="{% url 'post_detail' notif.post.slug %}" style="font-weight:600;">"{{ notif.post.title }}"</a>{% endif %}
+          {% endif %}
+        </p>
+        <p class="notif-time">{{ notif.created_at|timesince }} ago</p>
+      </div>
+
+      {% if not notif.is_read %}
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:6px;"></div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="empty-state">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <p>You're all caught up!</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

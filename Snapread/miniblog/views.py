@@ -85,7 +85,7 @@ def login_view(request):
 
     return render(request, 'Authentication/login.html', {'form': form})
 
-# FIX #9: logout GET se nahi, sirf POST se
+
 @login_required
 @require_POST
 def logout_view(request):
@@ -153,7 +153,7 @@ def post_detail(request, slug):
 
     comment_form = CommentForm()
 
-    # FIX #3: template path consistent rakha — 'Posts/' prefix use karo
+   
     return render(request, 'Posts/detail.html', {
         'post': post,
         'comments': comments,
@@ -168,8 +168,6 @@ def post_detail(request, slug):
 def post_create(request):
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
-        print(">>> FORM VALID:", form.is_valid())
-        print(">>> FORM ERRORS:", form.errors)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -206,9 +204,9 @@ def post_delete(request, slug):
         messages.error(request, 'You cannot delete this post.')
         return redirect('post_detail', slug=slug)
     if request.method == 'POST':
-        post.delete()
-        messages.success(request, 'Post deleted.')
-        return redirect('my_posts')
+       post.delete()
+       messages.success(request, 'Post deleted.')
+       return redirect('profile', username=request.user.username)
     return render(request, 'Posts/delete_confirm.html', {'post': post})
 
 
@@ -289,7 +287,6 @@ def clap_post(request, slug):
         user=request.user, post=post, defaults={'count': count}
     )
     if not created:
-        # FIX: already 50 pe ho toh save mat karo — unnecessary DB write avoid
         new_count = min(50, clap.count + count)
         if new_count != clap.count:
             clap.count = new_count

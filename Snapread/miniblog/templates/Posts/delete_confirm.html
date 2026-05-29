@@ -1,0 +1,45 @@
+{% extends 'Base/base.html' %}
+{% block title %}Delete Story — SnapRead{% endblock %}
+
+{% block content %}
+<div style="min-height:calc(100vh - var(--nav-h));display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+  <div style="max-width:480px;width:100%;text-align:center;">
+
+    <!-- Icon -->
+    <div style="width:64px;height:64px;border-radius:50%;background:#fff0f0;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+      <svg width="28" height="28" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </div>
+
+    <h1 style="font-size:24px;font-weight:700;margin-bottom:12px;color:var(--black);">
+      Delete this story?
+    </h1>
+    <p style="font-size:15px;color:var(--gray-600);line-height:1.6;margin-bottom:8px;">
+      You are about to delete
+    </p>
+    <p style="font-size:16px;font-weight:600;color:var(--gray-800);margin-bottom:28px;font-family:var(--font-serif);">
+      "{{ post.title }}"
+    </p>
+    <p style="font-size:13px;color:var(--gray-400);margin-bottom:32px;">
+      This action cannot be undone. All comments, claps, and bookmarks will also be removed.
+    </p>
+
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <a href="{% url 'profile' request.user.username %}"
+         class="btn btn-outline"
+         style="border-radius:4px;min-width:120px;">
+        Cancel
+      </a>
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn"
+                style="background:var(--red);color:var(--white);border-radius:4px;min-width:120px;">
+          Yes, delete
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

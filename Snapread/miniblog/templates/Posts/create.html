@@ -3,142 +3,199 @@
 
 {% block content %}
 <style>
-.editor-wrap { max-width: 740px; margin: 0 auto; padding: 40px 24px 80px; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.editor-topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 0; margin-bottom: 32px;
-  border-bottom: 1px solid var(--gray-200);
-}
-.editor-topbar-left { display: flex; align-items: center; gap: 10px; }
-.editor-topbar-right { display: flex; align-items: center; gap: 8px; }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+    font-family: var(--font-sans);
+  }
 
-.editor-status-pill {
-  font-size: 12px; color: var(--gray-600);
-  background: var(--gray-100); padding: 4px 12px;
-  border-radius: 99px; font-weight: 500;
-}
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray-200);
+    margin-bottom: 28px;
+  }
 
-.editor-title {
-  width: 100%; border: none; outline: none;
-  font-family: var(--font-serif);
-  font-size: 40px; font-weight: 700;
-  color: var(--black); resize: none;
-  line-height: 1.2; padding: 0;
-  margin-bottom: 4px;
-}
-.editor-title::placeholder { color: var(--gray-200); }
+  .brand {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+    text-decoration: none;
+  }
 
-.editor-divider {
-  width: 48px; height: 3px;
-  background: var(--green);
-  border-radius: 99px;
-  margin: 16px 0 20px;
-}
+  .editor-title {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-family: var(--font-serif);
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--black);
+    resize: none;
+    line-height: 1.25;
+    background: transparent;
+    padding: 0;
+    margin-bottom: 16px;
+  }
+  .editor-title::placeholder { color: var(--gray-200); }
 
-/* Image toolbar */
-.img-toolbar {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px;
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius) var(--radius) 0 0;
-  flex-wrap: wrap;
-}
-.img-toolbar-label {
-  font-size: 12px; color: var(--gray-600); font-weight: 600;
-  text-transform: uppercase; letter-spacing: .05em; flex-shrink: 0;
-}
-.img-upload-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 13px; color: var(--gray-800);
-  border: 1px solid var(--gray-200); background: var(--white);
-  padding: 5px 14px; border-radius: 99px; cursor: pointer;
-  transition: border-color .15s, background .15s; flex-shrink: 0;
-}
-.img-upload-btn:hover { border-color: var(--gray-400); background: var(--gray-50); }
-.img-url-row { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
-.img-url-input {
-  flex: 1; min-width: 0;
-  padding: 5px 14px; font-size: 13px;
-  border: 1px solid var(--gray-200); border-radius: 99px;
-  outline: none; background: var(--white);
-  transition: border-color .15s;
-}
-.img-url-input:focus { border-color: var(--gray-600); }
-.img-url-btn {
-  padding: 5px 16px; font-size: 13px; border-radius: 99px;
-  background: var(--black); color: var(--white);
-  border: none; cursor: pointer; white-space: nowrap;
-  transition: background .15s; flex-shrink: 0;
-}
-.img-url-btn:hover { background: var(--gray-800); }
+  .divider {
+    width: 36px;
+    height: 3px;
+    background: var(--green);
+    border-radius: 99px;
+    margin-bottom: 22px;
+  }
 
-/* Preview strip */
-#img-preview-strip {
-  display: none; flex-wrap: wrap; gap: 8px;
-  padding: 10px 16px;
-  border: 1px solid var(--gray-200); border-top: none; border-bottom: none;
-  background: var(--white);
-}
+  /* Upload zone */
+  .upload-zone {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px dashed var(--gray-300);
+    border-radius: var(--radius);
+    background: var(--gray-50);
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: border-color .15s, background .15s;
+  }
+  .upload-zone:hover {
+    border-color: var(--gray-500);
+    background: var(--gray-100);
+  }
+  .upload-icon {
+    font-size: 22px;
+    color: var(--gray-500);
+  }
+  .upload-text {
+    font-size: 14px;
+    color: var(--gray-600);
+  }
+  .upload-text strong {
+    color: var(--black);
+    font-weight: 600;
+  }
 
-/* Content area */
-.editor-content-area {
-  width: 100%; min-height: 420px;
-  border: 1px solid var(--gray-200);
-  border-top: none;
-  border-radius: 0 0 var(--radius) var(--radius);
-  padding: 20px 20px;
-  font-family: var(--font-serif);
-  font-size: 20px; line-height: 1.8;
-  color: var(--gray-800);
-  outline: none; resize: none;
-  transition: border-color .15s;
-}
-.editor-content-area:focus { border-color: var(--gray-400); }
-.editor-content-area::placeholder { color: var(--gray-300); }
+  /* Preview thumbnails */
+  .preview-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .preview-thumb {
+    position: relative;
+    display: inline-block;
+  }
+  .preview-thumb img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--gray-200);
+    display: block;
+  }
+  .preview-thumb .remove-btn {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--black);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+  }
 
-/* Footer */
-.editor-footer-bar {
-  display: flex; align-items: center; justify-content: flex-end;
-  gap: 10px; margin-top: 28px;
-  padding-top: 20px; border-top: 1px solid var(--gray-200);
-}
+  /* Content */
+  .editor-content {
+    width: 100%;
+    min-height: 300px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 18px;
+    font-family: var(--font-serif);
+    font-size: 18px;
+    line-height: 1.9;
+    color: var(--gray-800);
+    outline: none;
+    resize: none;
+    background: var(--white);
+    transition: border-color .15s;
+  }
+  .editor-content:focus { border-color: var(--gray-400); }
+  .editor-content::placeholder { color: var(--gray-300); }
 
-/* Hidden inputs needed by Django form */
-.hidden-meta { display: none; }
+  .word-count {
+    font-size: 12px;
+    color: var(--gray-500);
+    text-align: right;
+    margin-top: 6px;
+    margin-bottom: 20px;
+  }
+
+  /* Publish button */
+  .publish-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--black);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    letter-spacing: .01em;
+    transition: background .15s;
+  }
+  .publish-btn:hover { background: var(--gray-800); }
+
+  .discard-link {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--gray-500);
+    text-decoration: none;
+  }
+  .discard-link:hover { color: var(--black); }
+
+  .hidden-meta { display: none; }
 </style>
 
-<div class="editor-wrap">
+<div class="wrap">
 
   <!-- Top bar -->
-  <div class="editor-topbar">
-    <div class="editor-topbar-left">
-      <a href="{% url 'post_feed' %}"
-         style="font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--black);">
-        SnapRead
-      </a>
-      <span class="editor-status-pill">
-        {% if action == 'Edit' %}Editing{% else %}New story{% endif %}
-      </span>
-    </div>
-    <div class="editor-topbar-right">
-      <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
-         class="btn btn-ghost btn-sm">Discard</a>
-      <button type="submit" form="post-form" class="btn btn-dark btn-sm">
-        {% if action == 'Edit' %}Save changes{% else %}Publish story{% endif %}
-      </button>
-    </div>
+  <div class="topbar">
+    <a href="{% url 'post_feed' %}" class="brand">SnapRead</a>
   </div>
 
   {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" style="margin-bottom:20px;">{{ message }}</div>
+    <div class="alert alert-{{ message.tags }}" style="margin-bottom:16px;">{{ message }}</div>
   {% endfor %}
 
   <form method="POST" action="" enctype="multipart/form-data" id="post-form">
     {% csrf_token %}
 
-    <!-- Hidden fields Django still needs -->
+    <!-- Hidden Django fields -->
     <div class="hidden-meta">
       <select name="status">
         <option value="published" selected>Published</option>
@@ -153,59 +210,55 @@
       name="title"
       class="editor-title"
       rows="2"
-      placeholder="Title"
-      oninput="autoResize(this)"
+      placeholder="Title…"
+      oninput="autoResize(this); updateWC()"
     >{{ form.title.value|default:'' }}</textarea>
     {% if form.title.errors %}
       <p class="form-error" style="margin-bottom:8px;">{{ form.title.errors.0 }}</p>
     {% endif %}
 
-    <div class="editor-divider"></div>
+    <div class="divider"></div>
 
-    <!-- Image toolbar -->
-    <div class="img-toolbar">
-      <span class="img-toolbar-label">Insert image</span>
+    <!-- Image upload -->
+    <label class="upload-zone" for="img-upload">
+      <span class="upload-icon">&#128247;</span>
+      <span class="upload-text"><strong>Image upload karo</strong> &mdash; device se chuniye</span>
+    </label>
+    <input
+      type="file"
+      name="cover_image"
+      id="img-upload"
+      accept="image/*"
+      style="display:none"
+      onchange="handleUpload(this)"
+    />
 
-      <label class="img-upload-btn" title="Upload from device">
-        &#128247; Upload
-        <input type="file" id="inline-img-upload" accept="image/*" style="display:none;" />
-      </label>
-
-      <div class="img-url-row">
-        <input type="text" id="inline-img-url"
-               class="img-url-input"
-               placeholder="Paste image URL…" />
-        <button type="button" class="img-url-btn" onclick="insertImageFromUrl()">
-          Insert
-        </button>
-      </div>
-    </div>
-
-    <!-- Preview strip -->
-    <div id="img-preview-strip"></div>
+    <div class="preview-strip" id="preview-strip"></div>
 
     <!-- Content -->
     <textarea
       name="content"
       id="content-area"
-      class="editor-content-area"
-      placeholder="Tell your story…"
-      oninput="autoResize(this)"
+      class="editor-content"
+      placeholder="Apni kahani likhiye…"
+      oninput="autoResize(this); updateWC()"
     >{{ form.content.value|default:'' }}</textarea>
     {% if form.content.errors %}
       <p class="form-error" style="margin-top:6px;">{{ form.content.errors.0 }}</p>
     {% endif %}
 
-    <!-- Footer -->
-    <div class="editor-footer-bar">
-      <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
-         class="btn btn-ghost">Discard</a>
-      <button type="submit" class="btn btn-dark">
-        {% if action == 'Edit' %}Save changes{% else %}Publish story{% endif %}
-      </button>
-    </div>
+    <div class="word-count" id="word-count">0 words</div>
+
+    <!-- Publish -->
+    <button type="submit" class="publish-btn">
+      &#10148; {% if action == 'Edit' %}Save changes{% else %}Publish story{% endif %}
+    </button>
 
   </form>
+
+  <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
+     class="discard-link">Discard &amp; go back</a>
+
 </div>
 {% endblock %}
 
@@ -216,80 +269,53 @@ function autoResize(el) {
   el.style.height = el.scrollHeight + 'px';
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.editor-title, #content-area').forEach(autoResize);
-});
-
-function insertImageFromUrl() {
-  const inp = document.getElementById('inline-img-url');
-  const url = inp.value.trim();
-  if (!url) return;
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    alert('Please enter a valid URL starting with http:// or https://');
-    return;
-  }
-  insertMarkdownImage(url, 'image');
-  addPreviewThumb(url);
-  inp.value = '';
+function updateWC() {
+  var t = document.querySelector('[name="title"]').value || '';
+  var c = document.getElementById('content-area').value || '';
+  var words = (t + ' ' + c).trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('word-count').textContent = words + ' word' + (words === 1 ? '' : 's');
 }
 
-document.getElementById('inline-img-upload').addEventListener('change', function () {
-  const file = this.files[0];
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('textarea').forEach(autoResize);
+  updateWC();
+});
+
+function handleUpload(input) {
+  var strip = document.getElementById('preview-strip');
+  var file = input.files[0];
   if (!file) return;
+
   if (file.size > 5 * 1024 * 1024) {
-    alert('Image must be under 5 MB.');
-    this.value = '';
+    alert(file.name + ' 5MB se bada hai.');
+    input.value = '';
     return;
   }
-  const reader = new FileReader();
-  reader.onload = e => {
-    insertMarkdownImage(e.target.result, file.name.replace(/\.[^.]+$/, ''));
-    addPreviewThumb(e.target.result);
+
+  strip.innerHTML = '';
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var wrap = document.createElement('div');
+    wrap.className = 'preview-thumb';
+
+    var img = document.createElement('img');
+    img.src = e.target.result;
+    img.alt = file.name;
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'remove-btn';
+    btn.innerHTML = '&times;';
+    btn.onclick = function () {
+      wrap.remove();
+      input.value = '';
+    };
+
+    wrap.appendChild(img);
+    wrap.appendChild(btn);
+    strip.appendChild(wrap);
   };
   reader.readAsDataURL(file);
-  this.value = '';
-});
-
-function insertMarkdownImage(src, alt) {
-  const ta = document.getElementById('content-area');
-  const pos = ta.selectionStart;
-  const before = ta.value.substring(0, pos);
-  const after  = ta.value.substring(pos);
-  const prefix = before.length && !before.endsWith('\n\n') ? '\n\n' : '';
-  const md = `![${alt}](${src})`;
-  ta.value = before + prefix + md + '\n\n' + after;
-  const np = before.length + prefix.length + md.length + 2;
-  ta.setSelectionRange(np, np);
-  ta.focus();
-  autoResize(ta);
 }
-
-function addPreviewThumb(src) {
-  const strip = document.getElementById('img-preview-strip');
-  strip.style.display = 'flex';
-
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:relative;display:inline-block;';
-
-  const img = document.createElement('img');
-  img.src = src;
-  img.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);display:block;';
-  img.onerror = () => wrap.remove();
-
-  const del = document.createElement('button');
-  del.type = 'button';
-  del.innerHTML = '&times;';
-  del.style.cssText = 'position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--gray-800);color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;';
-  del.onclick = () => wrap.remove();
-
-  wrap.appendChild(img);
-  wrap.appendChild(del);
-  strip.appendChild(wrap);
-}
-
-// URL input — Enter key triggers insert
-document.getElementById('inline-img-url').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') { e.preventDefault(); insertImageFromUrl(); }
-});
 </script>
 {% endblock %}

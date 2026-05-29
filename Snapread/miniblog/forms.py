@@ -16,10 +16,20 @@ class RegisterForm(UserCreationForm):
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-input'})
 
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('This email is already registered.')
+        return email
+
 
 class LoginForm(forms.Form):
-    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Username'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Password'}))
+    email    = forms.EmailField(widget=forms.EmailInput(attrs={
+        'class': 'form-input', 'placeholder': 'Enter your email'
+    }))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        'class': 'form-input', 'placeholder': 'Enter your password'
+    }))
 
 
 class ProfileForm(forms.ModelForm):

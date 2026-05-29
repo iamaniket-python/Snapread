@@ -22,6 +22,7 @@ from .forms import (
 # ───────────────────────────────────────────
 # HELPER
 # ───────────────────────────────────────────
+
 def create_notification(recipient, sender, notif_type, post=None, comment=None):
     if recipient != sender:
         Notification.objects.create(
@@ -39,45 +40,54 @@ def create_notification(recipient, sender, notif_type, post=None, comment=None):
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('post_feed')
+        return redirect('profile', username=request.user.username)
+    
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             Profile.objects.get_or_create(user=user)
-            login(request, user)
+            login(request, user, backend='miniblog.backends.EmailBackend')
             messages.success(request, 'Welcome! Account created successfully.')
-            return redirect('post_feed')
+            return redirect('profile', username=user.username)
+        else:
+            
+            print(">>> REGISTER FORM ERRORS:", form.errors)
     else:
         form = RegisterForm()
+    
     return render(request, 'Authentication/register.html', {'form': form})
 
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('post_feed')
+        return redirect('profile', username=request.user.username)
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
-            user = authenticate(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password'],
-            )
+            email    = form.cleaned_data['email'].strip().lower()
+            password = form.cleaned_data['password']
+
+            user = authenticate(request, email=email, password=password)
+
             if user:
                 if not user.is_active:
                     messages.error(request, 'This account has been deactivated.')
                 else:
-                    login(request, user)
-                    next_url = request.GET.get('next', 'post_feed')
-                    return redirect(next_url)
+                    login(request, user, backend='miniblog.backends.EmailBackend')
+                    next_url = request.GET.get('next')
+                    return redirect(next_url) if next_url else redirect('profile', username=user.username)
             else:
-                messages.error(request, 'Invalid username or password.')
+                messages.error(request, 'Invalid email or password.')
     else:
         form = LoginForm()
+
     return render(request, 'Authentication/login.html', {'form': form})
 
-
+# FIX #9: logout GET se nahi, sirf POST se
 @login_required
+@require_POST
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -88,7 +98,10 @@ def logout_view(request):
 # ═══════════════════════════════════════════
 
 def post_feed(request):
-    posts = Post.objects.filter(status='published').select_related('author', 'category')
+    # FIX #4: default ordering add kiya
+    posts = Post.objects.filter(
+        status='published'
+    ).select_related('author', 'category').order_by('-created_at')
 
     tag      = request.GET.get('tag')
     category = request.GET.get('category')
@@ -122,25 +135,26 @@ def post_feed(request):
 
 
 def post_detail(request, slug):
-    post     = get_object_or_404(Post, slug=slug, status='published')
+    post = get_object_or_404(Post, slug=slug, status='published')
     post.increment_views()
 
     if request.user.is_authenticated:
         ReadHistory.objects.update_or_create(user=request.user, post=post)
 
-    comments = post.comments.filter(parent=None).select_related('user').prefetch_related('replies__user')
+    comments    = post.comments.filter(parent=None).select_related('user').prefetch_related('replies__user')
     total_claps = post.claps.aggregate(total=Sum('count'))['total'] or 0
     user_claps  = 0
     is_bookmarked = False
 
     if request.user.is_authenticated:
-        clap_obj = post.claps.filter(user=request.user).first()
-        user_claps = clap_obj.count if clap_obj else 0
+        clap_obj      = post.claps.filter(user=request.user).first()
+        user_claps    = clap_obj.count if clap_obj else 0
         is_bookmarked = Bookmark.objects.filter(user=request.user, post=post).exists()
 
     comment_form = CommentForm()
 
-    return render(request, 'miniblog/posts/detail.html', {
+    # FIX #3: template path consistent rakha — 'Posts/' prefix use karo
+    return render(request, 'Posts/detail.html', {
         'post': post,
         'comments': comments,
         'comment_form': comment_form,
@@ -163,7 +177,7 @@ def post_create(request):
             return redirect('post_detail', slug=post.slug)
     else:
         form = PostForm()
-    return render(request, 'miniblog/posts/create.html', {'form': form, 'action': 'Create'})
+    return render(request, 'Posts/create.html', {'form': form, 'action': 'Create'})
 
 
 @login_required
@@ -180,7 +194,7 @@ def post_edit(request, slug):
             return redirect('post_detail', slug=post.slug)
     else:
         form = PostForm(instance=post)
-    return render(request, 'miniblog/posts/create.html', {'form': form, 'action': 'Edit', 'post': post})
+    return render(request, 'Posts/create.html', {'form': form, 'action': 'Edit', 'post': post})
 
 
 @login_required
@@ -193,7 +207,7 @@ def post_delete(request, slug):
         post.delete()
         messages.success(request, 'Post deleted.')
         return redirect('my_posts')
-    return render(request, 'miniblog/posts/delete_confirm.html', {'post': post})
+    return render(request, 'Posts/delete_confirm.html', {'post': post})
 
 
 @login_required
@@ -204,19 +218,21 @@ def post_publish(request, slug):
         return redirect('my_posts')
     if post.status == 'draft':
         post.status = 'published'
-        post.save()
+        post.save(update_fields=['status'])
         messages.success(request, 'Post published!')
     else:
         post.status = 'draft'
-        post.save()
+        post.save(update_fields=['status'])
         messages.success(request, 'Post moved to drafts.')
     return redirect('post_detail', slug=post.slug)
 
 
 @login_required
 def my_posts(request):
-    posts = Post.objects.filter(author=request.user).select_related('category').order_by('-created_at')
-    return render(request, 'miniblog/posts/my_posts.html', {'posts': posts})
+    posts = Post.objects.filter(
+        author=request.user
+    ).select_related('category').order_by('-created_at')
+    return render(request, 'Posts/my_posts.html', {'posts': posts})
 
 
 # ═══════════════════════════════════════════
@@ -271,8 +287,11 @@ def clap_post(request, slug):
         user=request.user, post=post, defaults={'count': count}
     )
     if not created:
-        clap.count = min(50, clap.count + count)
-        clap.save()
+        # FIX: already 50 pe ho toh save mat karo — unnecessary DB write avoid
+        new_count = min(50, clap.count + count)
+        if new_count != clap.count:
+            clap.count = new_count
+            clap.save(update_fields=['count'])
     if created:
         create_notification(post.author, request.user, 'clap', post=post)
 
@@ -286,8 +305,10 @@ def clap_post(request, slug):
 
 @login_required
 def bookmark_list(request):
-    bookmarks = Bookmark.objects.filter(user=request.user).select_related('post')
-    return render(request, 'miniblog/bookmarks.html', {'bookmarks': bookmarks})
+    bookmarks = Bookmark.objects.filter(
+        user=request.user
+    ).select_related('post').order_by('-created_at')
+    return render(request, 'Posts/bookmarks.html', {'bookmarks': bookmarks})
 
 
 @login_required
@@ -310,14 +331,17 @@ def bookmark_toggle(request, slug):
 def profile_view(request, username):
     user    = get_object_or_404(User, username=username)
     profile = get_object_or_404(Profile, user=user)
-    posts   = Post.objects.filter(author=user, status='published').order_by('-created_at')
+    # FIX #7: select_related add kiya for performance
+    posts   = Post.objects.filter(
+        author=user, status='published'
+    ).select_related('category').order_by('-created_at')
 
     is_following = False
     if request.user.is_authenticated and request.user != user:
         my_profile   = get_object_or_404(Profile, user=request.user)
         is_following = profile.followers.filter(pk=my_profile.pk).exists()
 
-    return render(request, 'miniblog/profile/view.html', {
+    return render(request, 'Posts/view.html', {
         'profile': profile,
         'posts': posts,
         'is_following': is_following,
@@ -337,15 +361,16 @@ def profile_edit(request):
             return redirect('profile', username=request.user.username)
     else:
         form = ProfileForm(instance=profile)
-    return render(request, 'miniblog/profile/edit.html', {'form': form})
+    return render(request, 'Profile/edit.html', {'form': form})
 
 
 @login_required
 @require_POST
 def follow_user(request, username):
-    target_user    = get_object_or_404(User, username=username)
+    target_user = get_object_or_404(User, username=username)
     if target_user == request.user:
         return JsonResponse({'error': 'Cannot follow yourself.'}, status=400)
+
     my_profile     = get_object_or_404(Profile, user=request.user)
     target_profile = get_object_or_404(Profile, user=target_user)
 
@@ -372,7 +397,14 @@ def notification_list(request):
     notifs = Notification.objects.filter(
         recipient=request.user
     ).select_related('sender', 'post').order_by('-created_at')
-    return render(request, 'miniblog/notifications.html', {'notifications': notifs})
+
+    # FIX #8: unread_count template mein bhi bhejo (badge ke liye useful)
+    unread_count = notifs.filter(is_read=False).count()
+
+    return render(request, 'Notifications/list.html', {
+        'notifications': notifs,
+        'unread_count': unread_count,
+    })
 
 
 @login_required
@@ -388,14 +420,16 @@ def mark_notifications_read(request):
 
 @login_required
 def read_history(request):
-    if request.method == 'DELETE' or request.POST.get('_method') == 'DELETE':
+    # FIX #5: sirf POST + _method check rakha — cleaner
+    if request.method == 'POST' and request.POST.get('_method') == 'DELETE':
         ReadHistory.objects.filter(user=request.user).delete()
         messages.success(request, 'History cleared.')
         return redirect('read_history')
+
     history = ReadHistory.objects.filter(
         user=request.user
     ).select_related('post').order_by('-read_at')
-    return render(request, 'miniblog/history.html', {'history': history})
+    return render(request, 'Posts/history.html', {'history': history})
 
 
 # ═══════════════════════════════════════════
@@ -404,9 +438,9 @@ def read_history(request):
 
 def category_list(request):
     categories = Category.objects.annotate(post_count=Count('post')).order_by('-post_count')
-    return render(request, 'miniblog/categories.html', {'categories': categories})
+    return render(request, 'Posts/categories.html', {'categories': categories})
 
 
 def tag_list(request):
     tags = Tag.objects.annotate(post_count=Count('post')).order_by('-post_count')
-    return render(request, 'miniblog/tags.html', {'tags': tags})
+    return render(request, 'Posts/tags.html', {'tags': tags})

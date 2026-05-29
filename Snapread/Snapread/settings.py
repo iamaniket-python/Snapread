@@ -164,6 +164,10 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'miniblog.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',  
+]
 
 # PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [

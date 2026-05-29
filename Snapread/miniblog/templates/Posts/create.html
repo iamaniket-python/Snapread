@@ -1,0 +1,135 @@
+{% extends 'Base/base.html' %}
+{% block title %}{% if action == 'Edit' %}Edit Story{% else %}New Story{% endif %} — SnapRead{% endblock %}
+
+{% block content %}
+<div class="editor-wrap">
+
+  <div class="editor-toolbar">
+    <span style="font-size:14px;color:var(--gray-600);margin-right:auto;">
+      {% if action == 'Edit' %}Editing story{% else %}New story{% endif %}
+    </span>
+
+    <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
+       class="btn btn-ghost btn-sm">Cancel</a>
+
+    <button type="submit" form="post-form" class="btn btn-dark btn-sm">
+      {% if action == 'Edit' %}Save changes{% else %}Publish{% endif %}
+    </button>
+  </div>
+
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" style="margin-bottom:20px;">{{ message }}</div>
+  {% endfor %}
+
+  <form method="POST" action="" enctype="multipart/form-data" id="post-form">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div class="form-group">
+      <textarea
+        name="title"
+        class="editor-title"
+        rows="2"
+        placeholder="Title"
+        oninput="autoResize(this)"
+      >{{ form.title.value|default:'' }}</textarea>
+      {% if form.title.errors %}
+        <p class="form-error">{{ form.title.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Content -->
+    <div class="form-group">
+     <textarea name="content" class="editor-content" rows="20" placeholder="Tell your story...">
+      {% if form.content.errors %}
+        <p class="form-error">{{ form.content.errors.0 }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Meta -->
+    <div class="editor-meta">
+
+      <!-- Category -->
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select name="category" class="form-control" style="max-width:320px;">
+          <option value="">— Select category —</option>
+          {% for choice in form.category.field.queryset %}
+            <option value="{{ choice.pk }}"
+              {% if form.category.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
+              {{ choice.name }}
+            </option>
+          {% endfor %}
+        </select>
+        {% if form.category.errors %}
+          <p class="form-error">{{ form.category.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Tags -->
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <select name="tags" multiple class="form-control" style="max-width:320px;height:120px;">
+          {% for choice in form.tags.field.queryset %}
+            <option value="{{ choice.pk }}"
+              {% if choice.pk in form.tags.value %}selected{% endif %}>
+              {{ choice.name }}
+            </option>
+          {% endfor %}
+        </select>
+        <p class="form-hint">Ctrl+click to select multiple tags</p>
+      </div>
+
+      <!-- Featured Image -->
+      <div class="form-group">
+        <label class="form-label">Featured image</label>
+        {% if form.instance.featured_image %}
+          <div style="margin-bottom:10px;">
+            <img src="{{ form.instance.featured_image.url }}"
+                 alt="Current image"
+                 style="max-width:240px;border-radius:4px;border:1px solid var(--gray-200);" />
+            <p class="form-hint" style="margin-top:6px;">Upload a new image to replace</p>
+          </div>
+        {% endif %}
+        <input type="file" name="featured_image" accept="image/*"
+               class="form-control" style="padding:8px;" />
+        {% if form.featured_image.errors %}
+          <p class="form-error">{{ form.featured_image.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Status -->
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-control" style="max-width:200px;">
+          <option value="draft"     {% if form.status.value == 'draft'     %}selected{% endif %}>Draft</option>
+          <option value="published" {% if form.status.value == 'published' %}selected{% endif %}>Published</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Footer buttons -->
+    <div class="editor-footer">
+      <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
+         class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-dark">
+        {% if action == 'Edit' %}Save changes{% else %}Publish story{% endif %}
+      </button>
+    </div>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.editor-title, .editor-content').forEach(autoResize);
+});
+</script>
+{% endblock %}

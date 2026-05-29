@@ -43,12 +43,20 @@ class ProfileForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
+    content = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-input editor-textarea',
+            'rows': 20,
+            'placeholder': 'Tell your story...'
+        })
+    )
+
     class Meta:
         model  = Post
         fields = ['title', 'content', 'category', 'tags', 'featured_image', 'status']
         widgets = {
             'title':    forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Post title...'}),
-            'content':  forms.Textarea(attrs={'class': 'form-input editor-textarea', 'rows': 20, 'placeholder': 'Tell your story...'}),
             'category': forms.Select(attrs={'class': 'form-input'}),
             'tags':     forms.SelectMultiple(attrs={'class': 'form-input'}),
             'status':   forms.Select(attrs={'class': 'form-input'}),

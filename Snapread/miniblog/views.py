@@ -168,6 +168,8 @@ def post_detail(request, slug):
 def post_create(request):
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
+        print(">>> FORM VALID:", form.is_valid())
+        print(">>> FORM ERRORS:", form.errors)
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
@@ -341,7 +343,7 @@ def profile_view(request, username):
         my_profile   = get_object_or_404(Profile, user=request.user)
         is_following = profile.followers.filter(pk=my_profile.pk).exists()
 
-    return render(request, 'Posts/view.html', {
+    return render(request, 'Posts/Profile.html', {
         'profile': profile,
         'posts': posts,
         'is_following': is_following,
@@ -361,7 +363,7 @@ def profile_edit(request):
             return redirect('profile', username=request.user.username)
     else:
         form = ProfileForm(instance=profile)
-    return render(request, 'Profile/edit.html', {'form': form})
+    return render(request, 'Posts/edit.html', {'form': form})
 
 
 @login_required

@@ -1,8 +1,11 @@
 import uuid
+import os
+from io import BytesIO
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils import timezone
+from django.core.files.base import ContentFile
 
 
 # ─────────────────────────────────────────
@@ -22,7 +25,6 @@ class Profile(models.Model):
     )
     website = models.URLField(blank=True, null=True)
 
-    # ✅ ADDED: Follow system
     followers = models.ManyToManyField(
         'self',
         symmetrical=False,
@@ -36,6 +38,44 @@ class Profile(models.Model):
         indexes = [
             models.Index(fields=['created_at']),
         ]
+
+    def save(self, *args, **kwargs):
+        # ✅ FIX: Compress & resize profile image before saving
+        if self.profile_image:
+            try:
+                from PIL import Image
+                img = Image.open(self.profile_image)
+
+                # Convert RGBA/P to RGB (JPEG doesn't support transparency)
+                if img.mode in ('RGBA', 'P', 'LA'):
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    if img.mode == 'P':
+                        img = img.convert('RGBA')
+                    background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                    img = background
+                elif img.mode != 'RGB':
+                    img = img.convert('RGB')
+
+                # Resize to max 400x400 (profile pic — no need for more)
+                max_size = (400, 400)
+                img.thumbnail(max_size, Image.LANCZOS)
+
+                # Save compressed version back
+                buffer = BytesIO()
+                img.save(buffer, format='JPEG', quality=85, optimize=True)
+                buffer.seek(0)
+
+                # Keep original filename but force .jpg extension
+                name = os.path.splitext(self.profile_image.name)[0]
+                self.profile_image.save(
+                    f"{name}.jpg",
+                    ContentFile(buffer.read()),
+                    save=False  # prevent infinite loop
+                )
+            except Exception:
+                pass  # if Pillow fails, just save original — don't break the view
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.user.username
@@ -120,8 +160,6 @@ class Post(models.Model):
     )
 
     views = models.PositiveIntegerField(default=0)
-
-    # ✅ ADDED: auto read time (minutes)
     read_time = models.PositiveSmallIntegerField(default=1)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -131,20 +169,17 @@ class Post(models.Model):
     class Meta:
         ordering = ['-created_at']
         indexes = [
-            # High-cardinality single fields
             models.Index(fields=['slug']),
             models.Index(fields=['created_at']),
             models.Index(fields=['published_at']),
-            # Composite indexes for common feed queries
             models.Index(fields=['author', 'status']),
             models.Index(fields=['category', 'status']),
             models.Index(fields=['status', 'created_at']),
-            models.Index(fields=['status', 'views']),       # trending queries
+            models.Index(fields=['status', 'views']),
             models.Index(fields=['status', 'published_at']),
         ]
 
     def save(self, *args, **kwargs):
-        # ✅ FIX: Slug collision-safe generation
         if not self.slug:
             base_slug = slugify(self.title)
             slug = base_slug
@@ -152,18 +187,15 @@ class Post(models.Model):
                 slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
             self.slug = slug
 
-        # ✅ ADDED: Auto read time calculation (avg 200 wpm)
         word_count = len(self.content.split())
         self.read_time = max(1, round(word_count / 200))
 
-        # ✅ FIX: Auto-set published_at when status flips to published
         if self.status == 'published' and not self.published_at:
             self.published_at = timezone.now()
 
         super().save(*args, **kwargs)
 
     def increment_views(self):
-        # ✅ FIX: Race-condition-safe view counter using F() expression
         from django.db.models import F
         Post.objects.filter(pk=self.pk).update(views=F('views') + 1)
 
@@ -185,8 +217,6 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments'
     )
-
-    # ✅ ADDED: Self-referential parent for threaded replies
     parent = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -204,7 +234,7 @@ class Comment(models.Model):
         indexes = [
             models.Index(fields=['post', 'created_at']),
             models.Index(fields=['user', 'created_at']),
-            models.Index(fields=['parent']),               # fetch replies fast
+            models.Index(fields=['parent']),
         ]
 
     def is_reply(self):
@@ -215,7 +245,7 @@ class Comment(models.Model):
 
 
 # ─────────────────────────────────────────
-# CLAP  (replaces Like — supports 1–50 claps)
+# CLAP
 # ─────────────────────────────────────────
 class Clap(models.Model):
     post = models.ForeignKey(
@@ -228,7 +258,6 @@ class Clap(models.Model):
         on_delete=models.CASCADE,
         related_name='claps'
     )
-    # ✅ ADDED: count field like Medium (1 to 50 claps per user per post)
     count = models.PositiveSmallIntegerField(default=1)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -279,7 +308,7 @@ class Bookmark(models.Model):
 
 
 # ─────────────────────────────────────────
-# READ HISTORY  ✅ NEW
+# READ HISTORY
 # ─────────────────────────────────────────
 class ReadHistory(models.Model):
     user = models.ForeignKey(
@@ -305,7 +334,7 @@ class ReadHistory(models.Model):
 
 
 # ─────────────────────────────────────────
-# NOTIFICATION  ✅ NEW
+# NOTIFICATION
 # ─────────────────────────────────────────
 class Notification(models.Model):
 
@@ -329,7 +358,6 @@ class Notification(models.Model):
     )
     notif_type = models.CharField(max_length=20, choices=NOTIF_TYPES)
 
-    # Optional — not all notifications are post-related (e.g. follow)
     post = models.ForeignKey(
         Post,
         on_delete=models.SET_NULL,

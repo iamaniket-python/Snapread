@@ -43,8 +43,10 @@ class ProfileForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
+    # ✅ FIX: required=True rakha — blank post save nahi hogi
+    # aur 'published' default kar diya taaki feed mein seedha dikhe
     content = forms.CharField(
-        required=False,
+        required=True,
         widget=forms.Textarea(attrs={
             'class': 'form-input editor-textarea',
             'rows': 20,
@@ -56,11 +58,24 @@ class PostForm(forms.ModelForm):
         model  = Post
         fields = ['title', 'content', 'category', 'tags', 'featured_image', 'status']
         widgets = {
-            'title':    forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Post title...'}),
+            'title':    forms.TextInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'Post title...'
+            }),
             'category': forms.Select(attrs={'class': 'form-input'}),
             'tags':     forms.SelectMultiple(attrs={'class': 'form-input'}),
             'status':   forms.Select(attrs={'class': 'form-input'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # ✅ FIX: naye post mein default status 'published' rakho
+        # taaki likhte hi feed mein dikhe — draft manually choose kar sakte hain
+        if not self.instance.pk:
+            self.fields['status'].initial = 'published'
+
+        # title bhi required ensure karo
+        self.fields['title'].required = True
 
 
 class CommentForm(forms.ModelForm):

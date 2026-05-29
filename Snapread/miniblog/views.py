@@ -403,7 +403,7 @@ def notification_list(request):
     # FIX #8: unread_count template mein bhi bhejo (badge ke liye useful)
     unread_count = notifs.filter(is_read=False).count()
 
-    return render(request, 'Notifications/list.html', {
+    return render(request, 'Posts/notifications.html', {
         'notifications': notifs,
         'unread_count': unread_count,
     })

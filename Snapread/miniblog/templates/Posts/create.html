@@ -2,19 +2,133 @@
 {% block title %}{% if action == 'Edit' %}Edit Story{% else %}New Story{% endif %} — SnapRead{% endblock %}
 
 {% block content %}
+<style>
+.editor-wrap { max-width: 740px; margin: 0 auto; padding: 40px 24px 80px; }
+
+.editor-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; margin-bottom: 32px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.editor-topbar-left { display: flex; align-items: center; gap: 10px; }
+.editor-topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.editor-status-pill {
+  font-size: 12px; color: var(--gray-600);
+  background: var(--gray-100); padding: 4px 12px;
+  border-radius: 99px; font-weight: 500;
+}
+
+.editor-title {
+  width: 100%; border: none; outline: none;
+  font-family: var(--font-serif);
+  font-size: 40px; font-weight: 700;
+  color: var(--black); resize: none;
+  line-height: 1.2; padding: 0;
+  margin-bottom: 4px;
+}
+.editor-title::placeholder { color: var(--gray-200); }
+
+.editor-divider {
+  width: 48px; height: 3px;
+  background: var(--green);
+  border-radius: 99px;
+  margin: 16px 0 20px;
+}
+
+/* Image toolbar */
+.img-toolbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius) var(--radius) 0 0;
+  flex-wrap: wrap;
+}
+.img-toolbar-label {
+  font-size: 12px; color: var(--gray-600); font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em; flex-shrink: 0;
+}
+.img-upload-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; color: var(--gray-800);
+  border: 1px solid var(--gray-200); background: var(--white);
+  padding: 5px 14px; border-radius: 99px; cursor: pointer;
+  transition: border-color .15s, background .15s; flex-shrink: 0;
+}
+.img-upload-btn:hover { border-color: var(--gray-400); background: var(--gray-50); }
+.img-url-row { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.img-url-input {
+  flex: 1; min-width: 0;
+  padding: 5px 14px; font-size: 13px;
+  border: 1px solid var(--gray-200); border-radius: 99px;
+  outline: none; background: var(--white);
+  transition: border-color .15s;
+}
+.img-url-input:focus { border-color: var(--gray-600); }
+.img-url-btn {
+  padding: 5px 16px; font-size: 13px; border-radius: 99px;
+  background: var(--black); color: var(--white);
+  border: none; cursor: pointer; white-space: nowrap;
+  transition: background .15s; flex-shrink: 0;
+}
+.img-url-btn:hover { background: var(--gray-800); }
+
+/* Preview strip */
+#img-preview-strip {
+  display: none; flex-wrap: wrap; gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--gray-200); border-top: none; border-bottom: none;
+  background: var(--white);
+}
+
+/* Content area */
+.editor-content-area {
+  width: 100%; min-height: 420px;
+  border: 1px solid var(--gray-200);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  padding: 20px 20px;
+  font-family: var(--font-serif);
+  font-size: 20px; line-height: 1.8;
+  color: var(--gray-800);
+  outline: none; resize: none;
+  transition: border-color .15s;
+}
+.editor-content-area:focus { border-color: var(--gray-400); }
+.editor-content-area::placeholder { color: var(--gray-300); }
+
+/* Footer */
+.editor-footer-bar {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 10px; margin-top: 28px;
+  padding-top: 20px; border-top: 1px solid var(--gray-200);
+}
+
+/* Hidden inputs needed by Django form */
+.hidden-meta { display: none; }
+</style>
+
 <div class="editor-wrap">
 
-  <div class="editor-toolbar">
-    <span style="font-size:14px;color:var(--gray-600);margin-right:auto;">
-      {% if action == 'Edit' %}Editing story{% else %}New story{% endif %}
-    </span>
-
-    <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
-       class="btn btn-ghost btn-sm">Cancel</a>
-
-    <button type="submit" form="post-form" class="btn btn-dark btn-sm">
-      {% if action == 'Edit' %}Save changes{% else %}Publish{% endif %}
-    </button>
+  <!-- Top bar -->
+  <div class="editor-topbar">
+    <div class="editor-topbar-left">
+      <a href="{% url 'post_feed' %}"
+         style="font-family:var(--font-serif);font-size:20px;font-weight:700;color:var(--black);">
+        SnapRead
+      </a>
+      <span class="editor-status-pill">
+        {% if action == 'Edit' %}Editing{% else %}New story{% endif %}
+      </span>
+    </div>
+    <div class="editor-topbar-right">
+      <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
+         class="btn btn-ghost btn-sm">Discard</a>
+      <button type="submit" form="post-form" class="btn btn-dark btn-sm">
+        {% if action == 'Edit' %}Save changes{% else %}Publish story{% endif %}
+      </button>
+    </div>
   </div>
 
   {% for message in messages %}
@@ -24,95 +138,68 @@
   <form method="POST" action="" enctype="multipart/form-data" id="post-form">
     {% csrf_token %}
 
-    <!-- Title -->
-    <div class="form-group">
-      <textarea
-        name="title"
-        class="editor-title"
-        rows="2"
-        placeholder="Title"
-        oninput="autoResize(this)"
-      >{{ form.title.value|default:'' }}</textarea>
-      {% if form.title.errors %}
-        <p class="form-error">{{ form.title.errors.0 }}</p>
-      {% endif %}
+    <!-- Hidden fields Django still needs -->
+    <div class="hidden-meta">
+      <select name="status">
+        <option value="published" selected>Published</option>
+        <option value="draft">Draft</option>
+      </select>
+      <select name="category"></select>
+      <select name="tags" multiple></select>
     </div>
+
+    <!-- Title -->
+    <textarea
+      name="title"
+      class="editor-title"
+      rows="2"
+      placeholder="Title"
+      oninput="autoResize(this)"
+    >{{ form.title.value|default:'' }}</textarea>
+    {% if form.title.errors %}
+      <p class="form-error" style="margin-bottom:8px;">{{ form.title.errors.0 }}</p>
+    {% endif %}
+
+    <div class="editor-divider"></div>
+
+    <!-- Image toolbar -->
+    <div class="img-toolbar">
+      <span class="img-toolbar-label">Insert image</span>
+
+      <label class="img-upload-btn" title="Upload from device">
+        &#128247; Upload
+        <input type="file" id="inline-img-upload" accept="image/*" style="display:none;" />
+      </label>
+
+      <div class="img-url-row">
+        <input type="text" id="inline-img-url"
+               class="img-url-input"
+               placeholder="Paste image URL…" />
+        <button type="button" class="img-url-btn" onclick="insertImageFromUrl()">
+          Insert
+        </button>
+      </div>
+    </div>
+
+    <!-- Preview strip -->
+    <div id="img-preview-strip"></div>
 
     <!-- Content -->
-    <div class="form-group">
-     <textarea name="content" class="editor-content" rows="20" placeholder="Tell your story...">
-      {% if form.content.errors %}
-        <p class="form-error">{{ form.content.errors.0 }}</p>
-      {% endif %}
-    </div>
+    <textarea
+      name="content"
+      id="content-area"
+      class="editor-content-area"
+      placeholder="Tell your story…"
+      oninput="autoResize(this)"
+    >{{ form.content.value|default:'' }}</textarea>
+    {% if form.content.errors %}
+      <p class="form-error" style="margin-top:6px;">{{ form.content.errors.0 }}</p>
+    {% endif %}
 
-    <!-- Meta -->
-    <div class="editor-meta">
-
-      <!-- Category -->
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select name="category" class="form-control" style="max-width:320px;">
-          <option value="">— Select category —</option>
-          {% for choice in form.category.field.queryset %}
-            <option value="{{ choice.pk }}"
-              {% if form.category.value|stringformat:"s" == choice.pk|stringformat:"s" %}selected{% endif %}>
-              {{ choice.name }}
-            </option>
-          {% endfor %}
-        </select>
-        {% if form.category.errors %}
-          <p class="form-error">{{ form.category.errors.0 }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Tags -->
-      <div class="form-group">
-        <label class="form-label">Tags</label>
-        <select name="tags" multiple class="form-control" style="max-width:320px;height:120px;">
-          {% for choice in form.tags.field.queryset %}
-            <option value="{{ choice.pk }}"
-              {% if choice.pk in form.tags.value %}selected{% endif %}>
-              {{ choice.name }}
-            </option>
-          {% endfor %}
-        </select>
-        <p class="form-hint">Ctrl+click to select multiple tags</p>
-      </div>
-
-      <!-- Featured Image -->
-      <div class="form-group">
-        <label class="form-label">Featured image</label>
-        {% if form.instance.featured_image %}
-          <div style="margin-bottom:10px;">
-            <img src="{{ form.instance.featured_image.url }}"
-                 alt="Current image"
-                 style="max-width:240px;border-radius:4px;border:1px solid var(--gray-200);" />
-            <p class="form-hint" style="margin-top:6px;">Upload a new image to replace</p>
-          </div>
-        {% endif %}
-        <input type="file" name="featured_image" accept="image/*"
-               class="form-control" style="padding:8px;" />
-        {% if form.featured_image.errors %}
-          <p class="form-error">{{ form.featured_image.errors.0 }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Status -->
-      <div class="form-group">
-        <label class="form-label">Status</label>
-        <select name="status" class="form-control" style="max-width:200px;">
-          <option value="draft"     {% if form.status.value == 'draft'     %}selected{% endif %}>Draft</option>
-          <option value="published" {% if form.status.value == 'published' %}selected{% endif %}>Published</option>
-        </select>
-      </div>
-
-    </div>
-
-    <!-- Footer buttons -->
-    <div class="editor-footer">
+    <!-- Footer -->
+    <div class="editor-footer-bar">
       <a href="{% if post %}{% url 'post_detail' post.slug %}{% else %}{% url 'post_feed' %}{% endif %}"
-         class="btn btn-ghost">Cancel</a>
+         class="btn btn-ghost">Discard</a>
       <button type="submit" class="btn btn-dark">
         {% if action == 'Edit' %}Save changes{% else %}Publish story{% endif %}
       </button>
@@ -128,8 +215,81 @@ function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = el.scrollHeight + 'px';
 }
+
 document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.editor-title, .editor-content').forEach(autoResize);
+  document.querySelectorAll('.editor-title, #content-area').forEach(autoResize);
+});
+
+function insertImageFromUrl() {
+  const inp = document.getElementById('inline-img-url');
+  const url = inp.value.trim();
+  if (!url) return;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    alert('Please enter a valid URL starting with http:// or https://');
+    return;
+  }
+  insertMarkdownImage(url, 'image');
+  addPreviewThumb(url);
+  inp.value = '';
+}
+
+document.getElementById('inline-img-upload').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image must be under 5 MB.');
+    this.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    insertMarkdownImage(e.target.result, file.name.replace(/\.[^.]+$/, ''));
+    addPreviewThumb(e.target.result);
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+function insertMarkdownImage(src, alt) {
+  const ta = document.getElementById('content-area');
+  const pos = ta.selectionStart;
+  const before = ta.value.substring(0, pos);
+  const after  = ta.value.substring(pos);
+  const prefix = before.length && !before.endsWith('\n\n') ? '\n\n' : '';
+  const md = `![${alt}](${src})`;
+  ta.value = before + prefix + md + '\n\n' + after;
+  const np = before.length + prefix.length + md.length + 2;
+  ta.setSelectionRange(np, np);
+  ta.focus();
+  autoResize(ta);
+}
+
+function addPreviewThumb(src) {
+  const strip = document.getElementById('img-preview-strip');
+  strip.style.display = 'flex';
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:relative;display:inline-block;';
+
+  const img = document.createElement('img');
+  img.src = src;
+  img.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-200);display:block;';
+  img.onerror = () => wrap.remove();
+
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.innerHTML = '&times;';
+  del.style.cssText = 'position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:var(--gray-800);color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;';
+  del.onclick = () => wrap.remove();
+
+  wrap.appendChild(img);
+  wrap.appendChild(del);
+  strip.appendChild(wrap);
+}
+
+// URL input — Enter key triggers insert
+document.getElementById('inline-img-url').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); insertImageFromUrl(); }
 });
 </script>
 {% endblock %}

@@ -79,6 +79,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
 
                 'miniblog.Contextprocessors.global_context',
+
+                'miniblog.Contextprocessors.Notifications_processor',
             ],
         },
     },

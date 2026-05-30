@@ -37,25 +37,7 @@ def login_required(view_func):
     return wrapper
 
 
-# ═══════════════════════════════════════════
-# 2. POST OWNER REQUIRED
-# Checks slug kwarg → verifies request.user is the post author
-# Attaches `post` object to kwargs → no double DB query in view
-# ═══════════════════════════════════════════
-
 def post_owner_required(view_func):
-    """
-    Ensures request.user is the author of the post.
-    Fetches post by `slug` kwarg and injects it as `post` kwarg.
-
-    Usage:
-        @login_required
-        @post_owner_required
-        def patch(self, request, slug, post, **kwargs):
-            # `post` is already fetched — use directly
-            post.title = request.data.get('title')
-            post.save()
-    """
     @functools.wraps(view_func)
     def wrapper(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -81,23 +63,8 @@ def post_owner_required(view_func):
     return wrapper
 
 
-# ═══════════════════════════════════════════
-# 3. COMMENT OWNER REQUIRED
-# Checks pk kwarg → verifies request.user is the comment author
-# Attaches `comment` object to kwargs
-# ═══════════════════════════════════════════
-
 def comment_owner_required(view_func):
-    """
-    Ensures request.user is the author of the comment.
-    Fetches comment by `pk` kwarg and injects it as `comment` kwarg.
 
-    Usage:
-        @login_required
-        @comment_owner_required
-        def delete(self, request, pk, comment, **kwargs):
-            comment.delete()
-    """
     @functools.wraps(view_func)
     def wrapper(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -129,16 +96,7 @@ def comment_owner_required(view_func):
 # ═══════════════════════════════════════════
 
 def profile_owner_required(view_func):
-    """
-    Ensures request.user owns the profile being modified.
-    Checks `username` kwarg against request.user.username.
-
-    Usage:
-        @login_required
-        @profile_owner_required
-        def patch(self, request, username, **kwargs):
-            ...
-    """
+  
     @functools.wraps(view_func)
     def wrapper(self, request, *args, **kwargs):
         if not request.user.is_authenticated:

@@ -10,6 +10,193 @@
   <link rel="icon" type="image/x-icon" href="{% static 'assest/image/Favicon.png' %}">
   <link rel="stylesheet" href="{% static 'assest/css/main.css' %}" />
   {% block extra_css %}{% endblock %}
+
+  <style>
+    /* ══════════════════════════════════════
+       NOTIFICATION POPUP STYLES
+    ══════════════════════════════════════ */
+
+    .notif-wrap {
+      position: relative;
+    }
+
+    .notif-bell {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: inherit;
+      padding: 6px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: background 0.15s;
+    }
+    .notif-bell:hover {
+      background: var(--gray-100, #f3f4f6);
+    }
+
+    .notif-popup {
+      display: none;
+      position: absolute;
+      top: calc(100% + 14px);
+      right: 0;
+      width: 360px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 2px 10px rgba(0,0,0,0.06);
+      z-index: 9999;
+      overflow: hidden;
+      transform-origin: top right;
+    }
+
+    .notif-popup.open {
+      display: block;
+      animation: notifIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes notifIn {
+      from {
+        opacity: 0;
+        transform: scale(0.93) translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    /* Arrow caret */
+    .notif-popup::before {
+      content: '';
+      position: absolute;
+      top: -7px;
+      right: 20px;
+      width: 13px;
+      height: 13px;
+      background: #ffffff;
+      border-left: 1px solid #e5e7eb;
+      border-top: 1px solid #e5e7eb;
+      transform: rotate(45deg);
+      border-radius: 2px 0 0 0;
+    }
+
+    /* Header */
+    .notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 13px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .notif-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.2px;
+    }
+    .notif-mark-all {
+      font-size: 12px;
+      color: #6b7280;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.12s;
+    }
+    .notif-mark-all:hover { color: #111827; }
+
+    /* Body / scroll area */
+    .notif-body {
+      max-height: 320px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #e5e7eb transparent;
+    }
+    .notif-body::-webkit-scrollbar { width: 4px; }
+    .notif-body::-webkit-scrollbar-track { background: transparent; }
+    .notif-body::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+    /* Each notification row */
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 20px;
+      text-decoration: none;
+      color: inherit;
+      border-bottom: 1px solid #f9fafb;
+      transition: background 0.12s;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item:hover { background: #f9fafb; }
+    .notif-item.unread { background: #eff6ff; }
+    .notif-item.unread:hover { background: #dbeafe; }
+
+    /* Blue dot for unread */
+    .notif-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d1d5db;
+      margin-top: 5px;
+      flex-shrink: 0;
+      transition: background 0.12s;
+    }
+    .notif-item.unread .notif-dot {
+      background: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+    }
+
+    .notif-text { flex: 1; min-width: 0; }
+    .notif-text p {
+      font-size: 13.5px;
+      color: #374151;
+      margin: 0 0 4px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .notif-item.unread .notif-text p { color: #111827; font-weight: 500; }
+    .notif-time {
+      font-size: 11.5px;
+      color: #9ca3af;
+    }
+
+    /* Empty state */
+    .notif-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 40px 20px;
+      color: #9ca3af;
+    }
+    .notif-empty svg { opacity: 0.4; }
+    .notif-empty p { font-size: 13.5px; margin: 0; }
+
+    /* Footer */
+    .notif-footer {
+      padding: 12px 20px;
+      border-top: 1px solid #f3f4f6;
+      text-align: center;
+      background: #fafafa;
+    }
+    .notif-footer a {
+      font-size: 13px;
+      color: #6b7280;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.12s;
+    }
+    .notif-footer a:hover { color: #111827; }
+
+    /* Badge on bell icon */
+    .notif-bell .badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+    }
+  </style>
 </head>
 <body>
 
@@ -33,11 +220,57 @@
           Write
         </a>
 
-        <!-- FIX: notifications → notification_list -->
-        <a href="{% url 'notification_list' %}" class="nav-icon" title="Notifications">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          {% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}
-        </a>
+        <!-- ══════ NOTIFICATION BELL WITH POPUP ══════ -->
+        <div class="notif-wrap" id="notifWrap">
+          <button class="nav-icon notif-bell" onclick="toggleNotif(event)" title="Notifications">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            {% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}
+          </button>
+
+          <!-- Popup Panel -->
+          <div class="notif-popup" id="notifPopup">
+
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              {% if unread_count %}
+                <a href="{% url 'notification_list' %}" class="notif-mark-all">Mark all read</a>
+              {% endif %}
+            </div>
+
+            <div class="notif-body">
+              {% if notifications %}
+                {% for notif in notifications %}
+                <a href="{{ notif.url|default:'#' }}"
+                   class="notif-item {% if not notif.is_read %}unread{% endif %}">
+                  <div class="notif-dot"></div>
+                  <div class="notif-text">
+                    <p>{{ notif.message }}</p>
+                    <span class="notif-time">{{ notif.created_at|timesince }} ago</span>
+                  </div>
+                </a>
+                {% endfor %}
+              {% else %}
+                <div class="notif-empty">
+                  <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  <p>No notifications yet</p>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="notif-footer">
+              <a href="{% url 'notification_list' %}">View all notifications →</a>
+            </div>
+
+          </div>
+          <!-- /Popup Panel -->
+        </div>
+        <!-- ══════ END NOTIFICATION ══════ -->
 
         <div class="nav-avatar-wrap">
           {% if user.profile.profile_image %}
@@ -51,11 +284,9 @@
 
           <div class="dropdown" id="navDropdown">
             <a href="{% url 'profile' user.username %}">Profile</a>
-            <!-- FIX: bookmarks → bookmark_list -->
             <a href="{% url 'bookmark_list' %}">Bookmarks</a>
             <a href="{% url 'my_posts' %}">My Stories</a>
             <hr />
-            <!-- logout POST form — GET se nahi -->
             <form method="POST" action="{% url 'logout' %}" style="margin:0;">
               {% csrf_token %}
               <button type="submit" style="width:100%;text-align:left;padding:12px 20px;font-size:14px;color:var(--gray-800);background:none;border:none;cursor:pointer;font-family:inherit;">
@@ -103,15 +334,31 @@
 </footer>
 
 <script>
-function toggleDropdown() {
-  document.getElementById('navDropdown').classList.toggle('open');
-}
-document.addEventListener('click', function(e) {
-  const wrap = document.querySelector('.nav-avatar-wrap');
-  if (wrap && !wrap.contains(e.target)) {
+  /* ── Avatar dropdown ── */
+  function toggleDropdown() {
+    document.getElementById('navDropdown').classList.toggle('open');
+    document.getElementById('notifPopup').classList.remove('open');
+  }
+
+  /* ── Notification popup ── */
+  function toggleNotif(e) {
+    e.stopPropagation();
+    document.getElementById('notifPopup').classList.toggle('open');
     document.getElementById('navDropdown').classList.remove('open');
   }
-});
+
+  /* ── Close both on outside click ── */
+  document.addEventListener('click', function(e) {
+    const notifWrap = document.getElementById('notifWrap');
+    const avatarWrap = document.querySelector('.nav-avatar-wrap');
+
+    if (notifWrap && !notifWrap.contains(e.target)) {
+      document.getElementById('notifPopup').classList.remove('open');
+    }
+    if (avatarWrap && !avatarWrap.contains(e.target)) {
+      document.getElementById('navDropdown').classList.remove('open');
+    }
+  });
 </script>
 
 <script src="{% static 'js/main.js' %}"></script>

@@ -352,16 +352,30 @@ def profile_view(request, username):
 @login_required
 def profile_edit(request):
     profile = get_object_or_404(Profile, user=request.user)
+
     if request.method == 'POST':
-        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        form = ProfileForm(
+            request.POST,
+            request.FILES,
+            instance=profile
+        )
+
         if form.is_valid():
             form.save()
             messages.success(request, 'Profile updated!')
             return redirect('profile', username=request.user.username)
+
     else:
         form = ProfileForm(instance=profile)
-    return render(request, 'Posts/edit.html', {'form': form})
 
+    return render(
+        request,
+        'Posts/edit.html',
+        {
+            'form': form,
+            'profile': profile,   # <-- add this
+        }
+    )
 
 @login_required
 @require_POST

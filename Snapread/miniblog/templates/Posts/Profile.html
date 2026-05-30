@@ -2,255 +2,301 @@
 {% block title %}{{ profile.user.username }} — SnapRead{% endblock %}
 
 {% block content %}
+<style>
+ 
+</style>
 
-<!-- Delete Modal -->
-<div id="deleteModal" style="display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;">
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);" onclick="closeDeleteModal()"></div>
-  <div style="position:relative;background:var(--white);border-radius:8px;max-width:420px;width:90%;padding:36px 32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.2);">
-    <div style="width:56px;height:56px;border-radius:50%;background:#fff0f0;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-      <svg width="24" height="24" fill="none" stroke="var(--red)" stroke-width="2" viewBox="0 0 24 24">
-        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+<!-- ────────────── Delete Confirmation Modal ────────────── -->
+<div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-box">
+    <div class="modal-icon">
+      <svg width="22" height="22" fill="none" stroke="#E24B4A" stroke-width="2.2" viewBox="0 0 24 24">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
       </svg>
     </div>
-    <h3 style="font-size:20px;font-weight:700;margin-bottom:10px;color:var(--black);">Delete this story?</h3>
-    <p id="deleteModalTitle" style="font-size:14px;color:var(--gray-600);margin-bottom:6px;font-family:var(--font-serif);font-style:italic;"></p>
-    <p style="font-size:13px;color:var(--gray-400);margin-bottom:28px;">This cannot be undone. All comments and claps will also be removed.</p>
-    <div style="display:flex;gap:10px;justify-content:center;">
-      <button onclick="closeDeleteModal()" class="btn btn-outline" style="border-radius:4px;min-width:110px;">Cancel</button>
-      <form id="deleteForm" method="POST" style="margin:0;">
+    <h3 class="modal-title" id="modalTitle">Story delete karein?</h3>
+    <p class="modal-story-name" id="modalStoryName"></p>
+    <p class="modal-sub">Yeh action undo nahi ho sakta. Saare comments aur claps bhi hata diye jayenge.</p>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <form id="deleteForm" method="POST" style="flex:1;display:flex;">
         {% csrf_token %}
-        <button type="submit" class="btn" style="background:var(--red);color:var(--white);border-radius:4px;min-width:110px;">Yes, delete</button>
+        <button type="submit" class="modal-delete" style="flex:1;">Yes, Delete</button>
       </form>
     </div>
   </div>
 </div>
 
-<div class="profile-wrap">
+<!-- ────────────── Main Layout ────────────── -->
+<div class="profile-page">
 
-  <!-- ── LEFT: Posts ── -->
+  <!-- LEFT: Posts / About -->
   <div>
-    <div class="profile-tabs">
-      <a href="?tab=posts" class="profile-tab {% if tab == 'posts' or not tab %}active{% endif %}">Home</a>
-      <a href="?tab=about" class="profile-tab {% if tab == 'about' %}active{% endif %}">About</a>
-    </div>
+    <nav class="ptabs">
+      <a href="?tab=posts" class="ptab {% if tab == 'posts' or not tab %}active{% endif %}">Home</a>
+      <a href="?tab=about" class="ptab {% if tab == 'about' %}active{% endif %}">About</a>
+    </nav>
 
     {% if tab == 'about' %}
-    <div style="max-width:600px;padding-top:8px;">
-      <h2 style="font-size:24px;font-weight:700;margin-bottom:20px;color:var(--black);">About {{ profile.user.username }}</h2>
-      {% if profile.bio %}
-        <p style="font-size:17px;line-height:1.8;color:var(--gray-800);">{{ profile.bio }}</p>
-      {% else %}
-        <p style="color:var(--gray-400);font-size:15px;font-style:italic;">This author hasn't written a bio yet.</p>
-      {% endif %}
-      {% if profile.website %}
-        <p style="margin-top:20px;font-size:14px;display:flex;align-items:center;gap:6px;">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          <a href="{{ profile.website }}" target="_blank" style="color:var(--green);text-decoration:underline;">{{ profile.website }}</a>
+      <div class="about-wrap">
+        <h2 class="about-title">{{ profile.user.username }} ke baare mein</h2>
+        {% if profile.bio %}
+          <p class="about-bio">{{ profile.bio }}</p>
+        {% else %}
+          <p class="about-empty">Is author ne abhi bio nahi likhi hai.</p>
+        {% endif %}
+        {% if profile.website %}
+          <p class="about-website">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <a href="{{ profile.website }}" target="_blank" rel="noopener">{{ profile.website }}</a>
+          </p>
+        {% endif %}
+        <p class="about-since">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          Member since {{ profile.user.date_joined|date:"F Y" }}
         </p>
-      {% endif %}
-      <p style="margin-top:16px;font-size:13px;color:var(--gray-400);display:flex;align-items:center;gap:6px;">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        Member since {{ profile.user.date_joined|date:"F Y" }}
-      </p>
-    </div>
+      </div>
 
     {% else %}
-    {% if posts %}
-      <div class="post-list">
-        {% for post in posts %}
-        <article class="post-card">
-          <div>
-            <div class="post-card-meta">
-              {% if profile.profile_image %}
-                <img src="{{ profile.profile_image.url }}" class="post-card-avatar" alt="{{ profile.user.username }}" />
-              {% else %}
-                <div style="width:22px;height:22px;border-radius:50%;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gray-600);flex-shrink:0;">
-                  {{ profile.user.username|slice:":1"|upper }}
+      {% if posts %}
+        <div class="post-list">
+          {% for post in posts %}
+          <article class="post-item">
+            <div class="post-body">
+              <!-- Meta row -->
+              <div class="post-meta-row">
+                <div class="pm-avatar">
+                  {% if profile.profile_image and profile.profile_image.name %}
+                    <img src="{{ profile.profile_image.url }}" alt="{{ profile.user.username }}" />
+                  {% else %}
+                    {{ profile.user.username|slice:":1"|upper }}
+                  {% endif %}
                 </div>
-              {% endif %}
-              <span class="post-card-author">{{ profile.user.username }}</span>
-              <span class="post-card-dot">·</span>
-              <span class="text-muted text-sm">{{ post.created_at|date:"M d, Y" }}</span>
-              {% if post.read_time %}
-                <span class="post-card-dot">·</span>
-                <span class="text-muted text-sm">{{ post.read_time }} min read</span>
-              {% endif %}
-              {% if post.status == 'draft' %}
-                <span style="background:#fff3cd;color:#856404;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;margin-left:4px;">Draft</span>
-              {% endif %}
-            </div>
-
-            <h2 style="margin-bottom:8px;">
-              <a href="{% url 'post_detail' post.slug %}" style="color:var(--black);">{{ post.title }}</a>
-            </h2>
-            <p class="post-card-excerpt">{{ post.content|truncatewords:30|striptags }}</p>
-
-            <div class="post-card-footer">
-              <div class="post-card-info">
-                {% if post.category %}
-                  <span class="post-card-tag">{{ post.category.name }}</span>
+                <span class="pm-name">{{ profile.user.username }}</span>
+                <span class="pm-dot">·</span>
+                <span class="pm-date">{{ post.created_at|date:"M d, Y" }}</span>
+                {% if post.read_time %}
+                  <span class="pm-dot">·</span>
+                  <span class="pm-read">{{ post.read_time }} min read</span>
                 {% endif %}
-                <span>{{ post.views }} views</span>
+                {% if post.status == 'draft' %}
+                  <span class="pm-draft">Draft</span>
+                {% endif %}
+              </div>
+
+              <!-- Title -->
+              <a href="{% url 'post_detail' post.slug %}" class="post-title-link">
+                <span class="post-title-text">{{ post.title }}</span>
+              </a>
+
+              <!-- Excerpt -->
+              <p class="post-excerpt">{{ post.content|truncatewords:30|striptags }}</p>
+
+              <!-- Footer -->
+              <div class="post-footer-row">
+                {% if post.category %}
+                  <span class="pf-tag">{{ post.category.name }}</span>
+                {% endif %}
+
+                <span class="pf-stat">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  {{ post.views }}
+                </span>
 
                 {% if request.user.is_authenticated %}
                   <button class="icon-btn {% if post.slug in user_clapped_slugs %}active{% endif %}"
                           onclick="clapPost(this, '{{ post.slug }}')">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/></svg>
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/></svg>
                     <span class="clap-num">{{ post.total_claps|default:0 }}</span>
                   </button>
                   <button class="icon-btn {% if post.slug in user_bookmarked_slugs %}active{% endif %}"
                           onclick="toggleBookmark(this, '{{ post.slug }}')">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                   </button>
                 {% else %}
-                  <span class="text-muted text-sm">{{ post.total_claps|default:0 }} claps</span>
+                  <span class="pf-stat">{{ post.total_claps|default:0 }} claps</span>
+                {% endif %}
+
+                {% if request.user == profile.user %}
+                  <span class="pf-divider"></span>
+                  <a href="{% url 'post_edit' post.slug %}" class="pf-action">Edit</a>
+                  <button
+                    class="pf-action red"
+                    onclick="openDeleteModal('{{ post.slug }}', '{{ post.title|escapejs }}')">
+                    Delete
+                  </button>
+                  <form method="POST" action="{% url 'post_publish' post.slug %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="pf-action">
+                      {% if post.status == 'draft' %}Publish{% else %}Unpublish{% endif %}
+                    </button>
+                  </form>
                 {% endif %}
               </div>
+            </div>
 
-              {% if request.user == profile.user %}
-              <div class="post-card-actions">
-                <a href="{% url 'post_edit' post.slug %}" class="icon-btn text-sm">Edit</a>
-                <!-- FIX: modal popup for delete -->
-                <button
-                  class="icon-btn text-sm"
-                  style="color:var(--red);"
-                  onclick="openDeleteModal('{{ post.slug }}', '{{ post.title|escapejs }}')">
-                  Delete
-                </button>
-                <form method="POST" action="{% url 'post_publish' post.slug %}" style="display:inline;">
-                  {% csrf_token %}
-                  <button type="submit" class="icon-btn text-sm">
-                    {% if post.status == 'draft' %}Publish{% else %}Unpublish{% endif %}
-                  </button>
-                </form>
-              </div>
+            <!-- Thumbnail -->
+            <div class="post-thumb">
+              {% if post.featured_image and post.featured_image.name %}
+                <a href="{% url 'post_detail' post.slug %}">
+                  <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" />
+                </a>
+              {% else %}
+                <span class="post-thumb-placeholder">
+                  <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-4 4 4M3 15l4 4 4-4 4 4"/>
+                  </svg>
+                </span>
               {% endif %}
             </div>
-          </div>
+          </article>
+          {% endfor %}
+        </div>
 
-          {% if post.featured_image %}
-          <a href="{% url 'post_detail' post.slug %}">
-            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="post-card-thumb" />
-          </a>
+        <!-- Pagination -->
+        {% if posts.has_other_pages %}
+        <div class="pagination">
+          {% if posts.has_previous %}
+            <a href="?tab=posts&page={{ posts.previous_page_number }}" class="page-btn">← Previous</a>
           {% endif %}
-        </article>
-        {% endfor %}
-      </div>
+          <span class="page-info">{{ posts.number }} / {{ posts.paginator.num_pages }}</span>
+          {% if posts.has_next %}
+            <a href="?tab=posts&page={{ posts.next_page_number }}" class="page-btn">Next →</a>
+          {% endif %}
+        </div>
+        {% endif %}
 
-      {% if posts.has_other_pages %}
-      <div style="display:flex;justify-content:center;gap:8px;padding:40px 0;">
-        {% if posts.has_previous %}
-          <a href="?tab=posts&page={{ posts.previous_page_number }}" class="btn btn-outline btn-sm">← Previous</a>
-        {% endif %}
-        <span style="padding:6px 14px;font-size:13px;color:var(--gray-600);">{{ posts.number }} / {{ posts.paginator.num_pages }}</span>
-        {% if posts.has_next %}
-          <a href="?tab=posts&page={{ posts.next_page_number }}" class="btn btn-outline btn-sm">Next →</a>
-        {% endif %}
-      </div>
+      {% else %}
+        <div class="empty-state">
+          <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          <p>Abhi koi story publish nahi ki.</p>
+          {% if request.user == profile.user %}
+            <a href="{% url 'post_create' %}">Apni pehli story likhein →</a>
+          {% endif %}
+        </div>
       {% endif %}
-
-    {% else %}
-      <div class="empty-state">
-        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-        </svg>
-        <p>No stories published yet.</p>
-        {% if request.user == profile.user %}
-          <a href="{% url 'post_create' %}" style="text-decoration:underline;font-size:14px;margin-top:12px;display:inline-block;color:var(--green);">
-            Write your first story →
-          </a>
-        {% endif %}
-      </div>
-    {% endif %}
     {% endif %}
   </div>
 
-  <!-- ── RIGHT: Sidebar ── -->
-  <aside class="profile-sidebar">
+  <!-- RIGHT: Sidebar -->
+  <aside class="profile-sidebar-col">
+    <div class="sidebar-inner">
 
-    <div style="margin-bottom:20px;">
-      {% if profile.profile_image %}
-        <img src="{{ profile.profile_image.url }}" alt="{{ profile.user.username }}" class="profile-avatar" />
-      {% else %}
-        <div style="width:88px;height:88px;border-radius:50%;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:var(--gray-600);">
-          {{ profile.user.username|slice:":1"|upper }}
-        </div>
+      <!-- Profile Image — FIXED -->
+      <div class="sa-wrap">
+        {% if profile.profile_image and profile.profile_image.name %}
+          <img
+            src="{{ profile.profile_image.url }}"
+            alt="{{ profile.user.username }}"
+            class="sa-img"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="sa-fallback" style="display:none;">
+            {{ profile.user.username|slice:":1"|upper }}
+          </div>
+        {% else %}
+          <div class="sa-fallback">
+            {{ profile.user.username|slice:":1"|upper }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="s-username">{{ profile.user.username }}</div>
+
+      <div class="s-stats">
+        <div class="s-stat"><strong>{{ follower_count }}</strong> Followers</div>
+        <div class="s-stat"><strong>{{ following_count }}</strong> Following</div>
+      </div>
+
+      {% if profile.bio %}
+        <p class="s-bio-text">{{ profile.bio|truncatechars:160 }}</p>
       {% endif %}
-    </div>
 
-    <h1 class="profile-name">{{ profile.user.username }}</h1>
+      {% if profile.website %}
+        <a href="{{ profile.website }}" target="_blank" rel="noopener" class="s-website">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          {{ profile.website }}
+        </a>
+      {% endif %}
 
-    <div class="profile-stats">
-      <span><strong>{{ follower_count }}</strong> Followers</span>
-      <span><strong>{{ following_count }}</strong> Following</span>
-    </div>
+      {% if request.user.is_authenticated and request.user != profile.user %}
+        <form method="POST" action="{% url 'follow_user' profile.user.username %}" style="margin-bottom:10px;">
+          {% csrf_token %}
+          <button type="submit" class="s-btn {% if is_following %}s-btn-outline{% else %}s-btn-dark{% endif %}">
+            {% if is_following %}
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+              Following
+            {% else %}
+              Follow
+            {% endif %}
+          </button>
+        </form>
+      {% endif %}
 
-    {% if profile.bio %}
-      <p class="profile-bio">{{ profile.bio|truncatechars:160 }}</p>
-    {% endif %}
+      {% if request.user == profile.user %}
+        <a href="{% url 'profile_edit' %}" class="s-btn s-btn-outline">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit profile
+        </a>
+        <a href="{% url 'post_create' %}" class="s-btn s-btn-dark">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Write a story
+        </a>
+      {% endif %}
 
-    {% if profile.website %}
-      <p style="font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:5px;">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        <a href="{{ profile.website }}" target="_blank" style="color:var(--green);text-decoration:underline;">{{ profile.website }}</a>
+      <p class="s-since">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+        </svg>
+        Member since {{ profile.user.date_joined|date:"F Y" }}
       </p>
-    {% endif %}
 
-    {% if request.user.is_authenticated and request.user != profile.user %}
-      <form method="POST" action="{% url 'follow_user' profile.user.username %}" style="margin-bottom:12px;">
-        {% csrf_token %}
-        <button type="submit" class="btn {% if is_following %}btn-outline{% else %}btn-dark{% endif %} btn-full" style="border-radius:4px;">
-          {% if is_following %}
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
-            Following
-          {% else %}
-            Follow
-          {% endif %}
-        </button>
-      </form>
-    {% endif %}
-
-    {% if request.user == profile.user %}
-      <a href="{% url 'profile_edit' %}" class="btn btn-outline btn-full" style="border-radius:4px;text-align:center;margin-bottom:10px;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Edit profile
-      </a>
-      <a href="{% url 'post_create' %}" class="btn btn-dark btn-full" style="border-radius:4px;text-align:center;">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-        Write a story
-      </a>
-    {% endif %}
-
-    <p style="font-size:12px;color:var(--gray-400);margin-top:24px;display:flex;align-items:center;gap:5px;">
-      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      Member since {{ profile.user.date_joined|date:"F Y" }}
-    </p>
-
+    </div>
   </aside>
 </div>
 
 <script>
 const CSRF = '{{ csrf_token }}';
 
+/* ── Delete Modal ── */
 function openDeleteModal(slug, title) {
-  document.getElementById('deleteModalTitle').textContent = '"' + title + '"';
+  document.getElementById('modalStoryName').textContent = '\u201C' + title + '\u201D';
   document.getElementById('deleteForm').action = '/posts/' + slug + '/delete/';
-  const modal = document.getElementById('deleteModal');
-  modal.style.display = 'flex';
+  const overlay = document.getElementById('deleteModal');
+  overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
 function closeDeleteModal() {
-  document.getElementById('deleteModal').style.display = 'none';
+  const overlay = document.getElementById('deleteModal');
+  overlay.classList.remove('open');
   document.body.style.overflow = '';
 }
 
+/* Click outside = close */
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+/* Escape key = close */
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeDeleteModal();
 });
 
+/* ── Clap ── */
 function clapPost(btn, slug) {
-  fetch(`/posts/${slug}/clap/`, {
+  fetch('/posts/' + slug + '/clap/', {
     method: 'POST',
     headers: { 'X-CSRFToken': CSRF },
     body: new URLSearchParams({ count: 1 }),
@@ -262,8 +308,9 @@ function clapPost(btn, slug) {
   });
 }
 
+/* ── Bookmark ── */
 function toggleBookmark(btn, slug) {
-  fetch(`/posts/${slug}/bookmark/`, {
+  fetch('/posts/' + slug + '/bookmark/', {
     method: 'POST',
     headers: { 'X-CSRFToken': CSRF },
   })

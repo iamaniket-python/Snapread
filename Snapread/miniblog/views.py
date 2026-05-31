@@ -3,11 +3,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db.models import Sum, Count
+from django.db.models import Q, Sum, Count
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from django.contrib import messages
 
 from .models import (
     Profile, Post, Category, Tag,
@@ -493,8 +497,9 @@ def search_view(request):
     
     if query:
         posts = Post.objects.filter(
-            status='published',
-            title__icontains=query
+            status='published'
+        ).filter(
+            Q(title__icontains=query) | Q(author__username__icontains=query)  # ← yeh add karo
         ).select_related('author', 'category').order_by('-created_at')[:10]
         
         users = User.objects.filter(
@@ -544,3 +549,17 @@ def category_list(request):
 def tag_list(request):
     tags = Tag.objects.annotate(post_count=Count('post')).order_by('-post_count')
     return render(request, 'Posts/tags.html', {'tags': tags})
+
+
+
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'Auth/password_change.html'
+    success_url = reverse_lazy('password_change')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Password successfully change ho gaya!')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Kuch galat hua. Dobara try karein.')
+        return super().form_invalid(form)

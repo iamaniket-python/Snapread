@@ -1,6 +1,10 @@
 {% extends 'Base/base.html' %}
 {% block title %}{{ post.title }} — SnapRead{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+{% endblock %}
+
 {% block content %}
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -66,13 +70,17 @@
     transition: background .15s, color .15s;
   }
   .sr-btn-follow:hover, .sr-btn-follow.on { background: #111; color: #fff; }
+
   .sr-btn-edit {
+    display: inline-flex; align-items: center; gap: 5px;
     font-size: 13px; color: #6b7280; text-decoration: none;
     padding: 5px 12px; border-radius: 7px; border: 1px solid #e5e7eb;
-    transition: background .12s;
+    transition: background .12s, color .12s;
   }
   .sr-btn-edit:hover { background: #f5f5f3; color: #111; }
+
   .sr-btn-del {
+    display: inline-flex; align-items: center; gap: 5px;
     font-size: 13px; color: #dc2626; background: transparent;
     text-decoration: none; padding: 5px 12px; border-radius: 7px;
     border: 1px solid #fecaca; cursor: pointer; font-family: inherit;
@@ -95,6 +103,7 @@
   .sr-pill:hover { border-color: #9ca3af; background: #f9f9f7; }
   .sr-pill.on { border-color: #111; background: #111; color: #fff; }
   .sr-pill.on-green { border-color: #1a7a5e; background: #1a7a5e; color: #fff; }
+
   .sr-tags { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
   .sr-tag {
     font-size: 12px; color: #6b7280; background: #f3f4f6;
@@ -137,7 +146,6 @@
     margin-top: 52px; padding-top: 24px;
     border-top: 1px solid #f0f0ec;
   }
-  .sr-clap-meta { font-size: 13px; color: #9ca3af; }
 
   .sr-divider { width: 36px; height: 3px; background: #111; border-radius: 99px; margin: 52px 0 38px; }
 
@@ -213,6 +221,7 @@
   .sr-comment-user { font-size: 13px; font-weight: 600; color: #111; }
   .sr-comment-date { font-size: 12px; color: #9ca3af; }
   .sr-comment-delete {
+    display: inline-flex; align-items: center; gap: 4px;
     font-size: 12px; color: #dc2626; background: none;
     border: none; cursor: pointer; font-family: inherit;
     padding: 3px 7px; border-radius: 5px; transition: background .1s;
@@ -268,7 +277,50 @@
   }
   .sr-fb-btn:hover { background: #f3f3ef; color: #111; }
   .sr-fb-btn.on { color: #111; font-weight: 700; }
+  .sr-fb-btn.del-fb { color: #dc2626; }
+  .sr-fb-btn.del-fb:hover { background: #fef2f2; color: #b91c1c; }
   .sr-fb-sep { width: 1px; height: 18px; background: #ebebeb; margin: 0 2px; }
+
+  /* ── Delete Modal ── */
+  .del-overlay {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    background: rgba(0,0,0,0); align-items: center; justify-content: center;
+    transition: background .25s ease;
+  }
+  .del-overlay.open { display: flex; background: rgba(0,0,0,.45); }
+  .del-box {
+    background: #fff; border-radius: 12px;
+    max-width: 400px; width: 92%;
+    padding: 40px 32px 32px; text-align: center;
+    transform: scale(.94) translateY(12px); opacity: 0;
+    transition: transform .22s ease, opacity .22s ease;
+  }
+  .del-overlay.open .del-box { transform: scale(1) translateY(0); opacity: 1; }
+  .del-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: #fff0f0; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 20px; font-size: 24px; color: #E24B4A;
+  }
+  .del-title { font-size: 20px; font-weight: 700; color: #111; margin-bottom: 8px; }
+  .del-post-name { font-size: 14px; color: #6b7280; font-style: italic; margin-bottom: 6px; word-break: break-word; }
+  .del-sub { font-size: 13px; color: #9ca3af; margin-bottom: 28px; line-height: 1.6; }
+  .del-actions { display: flex; gap: 10px; justify-content: center; }
+  .del-cancel {
+    flex: 1; padding: 11px; border-radius: 6px;
+    border: 1.5px solid #e5e7eb; background: transparent;
+    font-size: 14px; font-weight: 500; color: #374151;
+    cursor: pointer; font-family: inherit;
+    transition: border-color .15s, background .15s;
+  }
+  .del-cancel:hover { border-color: #9ca3af; background: #f9f9f9; }
+  .del-confirm {
+    flex: 1; padding: 11px; border-radius: 6px; border: none;
+    background: #E24B4A; font-size: 14px; font-weight: 600;
+    color: #fff; cursor: pointer; font-family: inherit;
+    text-decoration: none; display: flex; align-items: center;
+    justify-content: center; gap: 6px; transition: background .15s;
+  }
+  .del-confirm:hover { background: #c93b3a; }
 </style>
 
 <div class="sr-wrap">
@@ -309,8 +361,12 @@
     </form>
     {% endif %}
     {% if request.user == post.author %}
-    <a href="{% url 'post_edit' post.slug %}" class="sr-btn-edit">Edit</a>
-    <a href="{% url 'post_delete' post.slug %}" class="sr-btn-del">Delete</a>
+    <a href="{% url 'post_edit' post.slug %}" class="sr-btn-edit">
+      <i class="ti ti-pencil" style="font-size:14px;"></i> 
+    </a>
+    <button type="button" class="sr-btn-del" onclick="openDeleteModal()">
+      <i class="ti ti-trash" style="font-size:14px;"></i>
+    </button>
     {% endif %}
   </div>
 
@@ -318,22 +374,16 @@
   <div class="sr-action-bar">
     {% if request.user.is_authenticated %}
     <button class="sr-pill {% if user_claps > 0 %}on{% endif %}" id="clap-btn">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/>
-      </svg>
+      <i class="ti ti-heart" style="font-size:15px;"></i>
       <span id="clap-count">{{ total_claps }}</span>
     </button>
     <button class="sr-pill {% if is_bookmarked %}on-green{% endif %}" id="bookmark-btn">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-      </svg>
+      <i class="ti ti-bookmark" style="font-size:15px;"></i>
       <span id="bm-label">{% if is_bookmarked %}Saved{% else %}Save{% endif %}</span>
     </button>
     {% else %}
     <a href="{% url 'login' %}" class="sr-pill">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/>
-      </svg>
+      <i class="ti ti-heart" style="font-size:15px;"></i>
       {{ total_claps }}
     </a>
     {% endif %}
@@ -344,7 +394,7 @@
     </div>
   </div>
 
-  <!-- Featured Image — SIRF EK BAAR -->
+  <!-- Featured Image -->
   {% if has_image %}
   <div class="sr-feat-img">
     <img src="{{ post.featured_image.url }}" alt="{{ post.title }}"
@@ -367,16 +417,10 @@
   <div class="sr-bottom-bar">
     {% if request.user.is_authenticated %}
     <button class="sr-pill {% if user_claps > 0 %}on{% endif %}" id="clap-btn-bottom">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/>
-      </svg>
+      <i class="ti ti-heart" style="font-size:15px;"></i>
       <span id="clap-count-bottom">{{ total_claps }}</span>
     </button>
     {% endif %}
-    <span class="sr-clap-meta">
-      {{ total_claps }} clap{{ total_claps|pluralize }}
-      {% if user_claps > 0 %}&nbsp;·&nbsp;Aapne {{ user_claps }} baar clap kiya{% endif %}
-    </span>
   </div>
 
   <!-- Author Card -->
@@ -440,12 +484,16 @@
       </div>
       {% if request.user == comment.user %}
       <a href="{% url 'delete_comment' comment.pk %}" class="sr-comment-delete"
-         onclick="return confirm('Yeh comment delete karein?');">Delete</a>
+         onclick="return confirm('Yeh comment delete karein?');">
+        <i class="ti ti-trash" style="font-size:13px;"></i> Delete
+      </a>
       {% endif %}
     </div>
     <p class="sr-comment-body">{{ comment.comment }}</p>
     {% if request.user.is_authenticated %}
-    <button class="sr-reply-btn" onclick="toggleReply('r{{ comment.pk }}')">↩ Reply</button>
+    <button class="sr-reply-btn" onclick="toggleReply('r{{ comment.pk }}')">
+      <i class="ti ti-corner-down-left" style="font-size:12px;"></i> Reply
+    </button>
     <div id="r{{ comment.pk }}" class="sr-reply-form">
       <form method="POST" action="{% url 'add_comment' post.slug %}">
         {% csrf_token %}
@@ -475,7 +523,9 @@
           </div>
           {% if request.user == reply.user %}
           <a href="{% url 'delete_comment' reply.pk %}" class="sr-comment-delete"
-             onclick="return confirm('Yeh reply delete karein?');">Delete</a>
+             onclick="return confirm('Yeh reply delete karein?');">
+            <i class="ti ti-trash" style="font-size:13px;"></i> Delete
+          </a>
           {% endif %}
         </div>
         <p class="sr-comment-body">{{ reply.comment }}</p>
@@ -490,30 +540,51 @@
 
 </div>
 
+<!-- ── Delete Modal ── -->
+{% if request.user == post.author %}
+<div class="del-overlay" id="deleteModal">
+  <div class="del-box" id="deleteModalBox">
+    <div class="del-icon">
+      <i class="ti ti-trash"></i>
+    </div>
+    <div class="del-title">Story delete karein?</div>
+    <div class="del-post-name">{{ post.title|truncatechars:60 }}</div>
+    <div class="del-sub">Yeh action undo nahi ho sakta.</div>
+    <div class="del-actions">
+      <button class="del-cancel" onclick="closeDeleteModal()">
+        Cancel
+      </button>
+      <a href="{% url 'post_delete' post.slug %}" class="del-confirm">
+        <i class="ti ti-trash" style="font-size:15px;"></i> Delete
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Floating Bar -->
 {% if request.user.is_authenticated %}
 <div class="sr-float">
   <button class="sr-fb-btn {% if user_claps > 0 %}on{% endif %}" id="clap-btn-float">
-    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/>
-    </svg>
+    <i class="ti ti-heart" style="font-size:14px;"></i>
     <span id="clap-count-float">{{ total_claps }}</span>
   </button>
   <div class="sr-fb-sep"></div>
   <button class="sr-fb-btn {% if is_bookmarked %}on{% endif %}" id="bookmark-btn-float">
-    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-    </svg>
+    <i class="ti ti-bookmark" style="font-size:14px;"></i>
     Save
   </button>
   {% if request.user == post.author %}
   <div class="sr-fb-sep"></div>
   <a href="{% url 'post_edit' post.slug %}" class="sr-fb-btn">
-    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-    </svg>
+    <i class="ti ti-pencil" style="font-size:14px;"></i>
     Edit
   </a>
+  <div class="sr-fb-sep"></div>
+  <button class="sr-fb-btn del-fb" onclick="openDeleteModal()">
+    <i class="ti ti-trash" style="font-size:14px;"></i>
+    Delete
+  </button>
   {% endif %}
 </div>
 {% endif %}
@@ -567,6 +638,26 @@
   function toggleReply(id) {
     var e = document.getElementById(id);
     if (e) e.style.display = e.style.display === 'block' ? 'none' : 'block';
+  }
+
+  /* ── Delete Modal ── */
+  function openDeleteModal() {
+    var overlay = document.getElementById('deleteModal');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    setTimeout(function() { overlay.classList.add('open'); }, 10);
+  }
+  function closeDeleteModal() {
+    var overlay = document.getElementById('deleteModal');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    setTimeout(function() { overlay.style.display = 'none'; }, 260);
+  }
+  var overlay = document.getElementById('deleteModal');
+  if (overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeDeleteModal();
+    });
   }
 </script>
 {% endblock %}

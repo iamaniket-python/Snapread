@@ -138,6 +138,9 @@ def post_detail(request, slug):
     post = get_object_or_404(Post, slug=slug, status='published')
     post.increment_views()
 
+    # ← YEH PEHLE RAKHO, kisi bhi if se pehle
+    has_image = bool(post.featured_image and post.featured_image.name)
+
     if request.user.is_authenticated:
         ReadHistory.objects.update_or_create(user=request.user, post=post)
 
@@ -145,15 +148,19 @@ def post_detail(request, slug):
     total_claps = post.claps.aggregate(total=Sum('count'))['total'] or 0
     user_claps  = 0
     is_bookmarked = False
+    is_following  = False
 
     if request.user.is_authenticated:
         clap_obj      = post.claps.filter(user=request.user).first()
         user_claps    = clap_obj.count if clap_obj else 0
         is_bookmarked = Bookmark.objects.filter(user=request.user, post=post).exists()
+        if request.user != post.author:
+            my_profile     = get_object_or_404(Profile, user=request.user)
+            author_profile = get_object_or_404(Profile, user=post.author)
+            is_following   = author_profile.followers.filter(pk=my_profile.pk).exists()
 
     comment_form = CommentForm()
 
-   
     return render(request, 'Posts/detail.html', {
         'post': post,
         'comments': comments,
@@ -161,8 +168,9 @@ def post_detail(request, slug):
         'total_claps': total_claps,
         'user_claps': user_claps,
         'is_bookmarked': is_bookmarked,
+        'is_following': is_following,
+        'has_image': has_image,   # ← ab yeh kaam karega
     })
-
 
 @login_required
 def post_create(request):
@@ -229,10 +237,28 @@ def post_publish(request, slug):
 
 @login_required
 def my_posts(request):
+    filter_by = request.GET.get('filter', 'all')
     posts = Post.objects.filter(
         author=request.user
-    ).select_related('category').order_by('-created_at')
-    return render(request, 'Posts/my_posts.html', {'posts': posts})
+    ).select_related('category').annotate(
+        total_claps=Sum('claps__count')
+    ).order_by('-created_at')
+
+    if filter_by == 'published':
+        posts = posts.filter(status='published')
+    elif filter_by == 'draft':
+        posts = posts.filter(status='draft')
+
+    all_posts     = Post.objects.filter(author=request.user)
+    published_count = all_posts.filter(status='published').count()
+    draft_count     = all_posts.filter(status='draft').count()
+
+    return render(request, 'Posts/my_posts.html', {
+        'posts':           posts,
+        'filter':          filter_by,
+        'published_count': published_count,
+        'draft_count':     draft_count,
+    })
 
 
 # ═══════════════════════════════════════════
@@ -291,11 +317,16 @@ def clap_post(request, slug):
         if new_count != clap.count:
             clap.count = new_count
             clap.save(update_fields=['count'])
+
     if created:
         create_notification(post.author, request.user, 'clap', post=post)
 
     total = post.claps.aggregate(total=Sum('count'))['total'] or 0
-    return JsonResponse({'total_claps': total, 'your_claps': clap.count})
+    return JsonResponse({
+        'total_claps': total,
+        'your_claps': clap.count,
+        'clapped': True,   
+    })
 
 
 # ═══════════════════════════════════════════
@@ -320,6 +351,11 @@ def bookmark_toggle(request, slug):
         bookmarked = False
     else:
         bookmarked = True
+
+    # Agar bookmark page se aaya hai toh redirect karo
+    if request.META.get('HTTP_REFERER', '').endswith('/bookmarks/'):
+        return redirect('bookmark_list')
+
     return JsonResponse({'bookmarked': bookmarked})
 
 
@@ -330,24 +366,54 @@ def bookmark_toggle(request, slug):
 def profile_view(request, username):
     user    = get_object_or_404(User, username=username)
     profile = get_object_or_404(Profile, user=user)
-    # FIX #7: select_related add kiya for performance
-    posts   = Post.objects.filter(
-        author=user, status='published'
-    ).select_related('category').order_by('-created_at')
+
+    tab = request.GET.get('tab', 'posts')
+
+    # Draft bhi dikhao agar apna profile hai
+    if request.user.is_authenticated and request.user == user:
+        posts_qs = Post.objects.filter(
+            author=user
+        ).select_related('category').annotate(
+            total_claps=Sum('claps__count')
+        ).order_by('-created_at')
+    else:
+        posts_qs = Post.objects.filter(
+            author=user, status='published'
+        ).select_related('category').annotate(
+            total_claps=Sum('claps__count')
+        ).order_by('-created_at')
+
+    paginator = Paginator(posts_qs, 10)
+    page      = request.GET.get('page')
+    posts     = paginator.get_page(page)
 
     is_following = False
     if request.user.is_authenticated and request.user != user:
         my_profile   = get_object_or_404(Profile, user=request.user)
         is_following = profile.followers.filter(pk=my_profile.pk).exists()
 
-    return render(request, 'Posts/Profile.html', {
-        'profile': profile,
-        'posts': posts,
-        'is_following': is_following,
-        'follower_count': profile.followers.count(),
-        'following_count': profile.following.count(),
-    })
+    user_clapped_slugs    = set()
+    user_bookmarked_slugs = set()
+    if request.user.is_authenticated:
+        user_clapped_slugs = set(
+            Clap.objects.filter(user=request.user)
+            .values_list('post__slug', flat=True)
+        )
+        user_bookmarked_slugs = set(
+            Bookmark.objects.filter(user=request.user)
+            .values_list('post__slug', flat=True)
+        )
 
+    return render(request, 'Posts/Profile.html', {
+        'profile':               profile,
+        'posts':                 posts,
+        'tab':                   tab,
+        'is_following':          is_following,
+        'follower_count':        profile.followers.count(),
+        'following_count':       profile.following.count(),
+        'user_clapped_slugs':    user_clapped_slugs,
+        'user_bookmarked_slugs': user_bookmarked_slugs,
+    })
 
 @login_required
 def profile_edit(request):
@@ -419,12 +485,33 @@ def notification_list(request):
         'unread_count': unread_count,
     })
 
+def search_view(request):
+    query = request.GET.get('search', '').strip()
+    
+    posts = []
+    users = []
+    
+    if query:
+        posts = Post.objects.filter(
+            status='published',
+            title__icontains=query
+        ).select_related('author', 'category').order_by('-created_at')[:10]
+        
+        users = User.objects.filter(
+            username__icontains=query
+        ).select_related('profile')[:6]
+    
+    return render(request, 'Posts/search.html', {
+        'query': query,
+        'posts': posts,
+        'users': users,
+    })
 
 @login_required
 @require_POST
 def mark_notifications_read(request):
     Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
-    return JsonResponse({'message': 'All marked as read.'})
+    return redirect('notification_list') 
 
 
 # ═══════════════════════════════════════════

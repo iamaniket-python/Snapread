@@ -12,30 +12,15 @@
   {% block extra_css %}{% endblock %}
 
   <style>
-    /* ══════════════════════════════════════
-       NOTIFICATION POPUP STYLES
-    ══════════════════════════════════════ */
-
-    .notif-wrap {
-      position: relative;
-    }
+    .notif-wrap { position: relative; }
 
     .notif-bell {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: inherit;
-      padding: 6px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      transition: background 0.15s;
+      background: none; border: none; cursor: pointer;
+      color: inherit; padding: 6px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; transition: background 0.15s;
     }
-    .notif-bell:hover {
-      background: var(--gray-100, #f3f4f6);
-    }
+    .notif-bell:hover { background: var(--gray-100, #f3f4f6); }
 
     .notif-popup {
       display: none;
@@ -51,31 +36,20 @@
       overflow: hidden;
       transform-origin: top right;
     }
-
     .notif-popup.open {
       display: block;
       animation: notifIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-
     @keyframes notifIn {
-      from {
-        opacity: 0;
-        transform: scale(0.93) translateY(-8px);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
+      from { opacity: 0; transform: scale(0.93) translateY(-8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* Arrow caret */
     .notif-popup::before {
       content: '';
       position: absolute;
-      top: -7px;
-      right: 20px;
-      width: 13px;
-      height: 13px;
+      top: -7px; right: 20px;
+      width: 13px; height: 13px;
       background: #ffffff;
       border-left: 1px solid #e5e7eb;
       border-top: 1px solid #e5e7eb;
@@ -83,41 +57,35 @@
       border-radius: 2px 0 0 0;
     }
 
-    /* Header */
-    .notif-header {
+    .notif-popup-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px 13px;
       border-bottom: 1px solid #f3f4f6;
     }
-    .notif-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #111827;
-      letter-spacing: -0.2px;
+    .notif-popup-title {
+      font-size: 15px; font-weight: 700;
+      color: #111827; letter-spacing: -0.2px;
     }
     .notif-mark-all {
-      font-size: 12px;
-      color: #6b7280;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.12s;
+      font-size: 12px; color: #6b7280;
+      font-weight: 500; transition: color 0.12s;
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; padding: 0;
     }
     .notif-mark-all:hover { color: #111827; }
 
-    /* Body / scroll area */
-    .notif-body {
+    .notif-popup-body {
       max-height: 320px;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #e5e7eb transparent;
     }
-    .notif-body::-webkit-scrollbar { width: 4px; }
-    .notif-body::-webkit-scrollbar-track { background: transparent; }
-    .notif-body::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+    .notif-popup-body::-webkit-scrollbar { width: 4px; }
+    .notif-popup-body::-webkit-scrollbar-track { background: transparent; }
+    .notif-popup-body::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
 
-    /* Each notification row */
     .notif-item {
       display: flex;
       align-items: flex-start;
@@ -133,15 +101,11 @@
     .notif-item.unread { background: #eff6ff; }
     .notif-item.unread:hover { background: #dbeafe; }
 
-    /* Blue dot for unread */
     .notif-dot {
-      width: 8px;
-      height: 8px;
+      width: 8px; height: 8px;
       border-radius: 50%;
       background: #d1d5db;
-      margin-top: 5px;
-      flex-shrink: 0;
-      transition: background 0.12s;
+      margin-top: 5px; flex-shrink: 0;
     }
     .notif-item.unread .notif-dot {
       background: #3b82f6;
@@ -150,51 +114,36 @@
 
     .notif-text { flex: 1; min-width: 0; }
     .notif-text p {
-      font-size: 13.5px;
-      color: #374151;
-      margin: 0 0 4px;
-      line-height: 1.5;
+      font-size: 13.5px; color: #374151;
+      margin: 0 0 4px; line-height: 1.5;
       word-break: break-word;
     }
     .notif-item.unread .notif-text p { color: #111827; font-weight: 500; }
-    .notif-time {
-      font-size: 11.5px;
-      color: #9ca3af;
-    }
+    .notif-time { font-size: 11.5px; color: #9ca3af; }
 
-    /* Empty state */
     .notif-empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      padding: 40px 20px;
-      color: #9ca3af;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 10px;
+      padding: 40px 20px; color: #9ca3af;
     }
     .notif-empty svg { opacity: 0.4; }
     .notif-empty p { font-size: 13.5px; margin: 0; }
 
-    /* Footer */
-    .notif-footer {
+    .notif-popup-footer {
       padding: 12px 20px;
       border-top: 1px solid #f3f4f6;
       text-align: center;
       background: #fafafa;
     }
-    .notif-footer a {
-      font-size: 13px;
-      color: #6b7280;
-      text-decoration: none;
-      font-weight: 600;
+    .notif-popup-footer a {
+      font-size: 13px; color: #6b7280;
+      text-decoration: none; font-weight: 600;
       transition: color 0.12s;
     }
-    .notif-footer a:hover { color: #111827; }
+    .notif-popup-footer a:hover { color: #111827; }
 
-    /* Badge on bell icon */
     .notif-bell .badge {
-      position: absolute;
-      top: 2px;
-      right: 2px;
+      position: absolute; top: 2px; right: 2px;
     }
   </style>
 </head>
@@ -208,7 +157,9 @@
 
     <div class="nav-center">
       <form action="{% url 'post_feed' %}" method="GET" class="nav-search">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
         <input type="text" name="search" placeholder="Search..." value="{{ request.GET.search }}" />
       </form>
     </div>
@@ -216,11 +167,14 @@
     <div class="nav-right">
       {% if user.is_authenticated %}
         <a href="{% url 'post_create' %}" class="btn btn-ghost">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
           Write
         </a>
 
-        <!-- ══════ NOTIFICATION BELL WITH POPUP ══════ -->
+        <!-- ══════ NOTIFICATION BELL ══════ -->
         <div class="notif-wrap" id="notifWrap">
           <button class="nav-icon notif-bell" onclick="toggleNotif(event)" title="Notifications">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -230,25 +184,39 @@
             {% if unread_count %}<span class="badge">{{ unread_count }}</span>{% endif %}
           </button>
 
-          <!-- Popup Panel -->
           <div class="notif-popup" id="notifPopup">
 
-            <div class="notif-header">
-              <span class="notif-title">Notifications</span>
+            <div class="notif-popup-header">
+              <span class="notif-popup-title">Notifications</span>
               {% if unread_count %}
-                <a href="{% url 'notification_list' %}" class="notif-mark-all">Mark all read</a>
+                <form method="POST" action="{% url 'mark_notifications_read' %}" style="margin:0;">
+                  {% csrf_token %}
+                  <button type="submit" class="notif-mark-all">Mark all read</button>
+                </form>
               {% endif %}
             </div>
 
-            <div class="notif-body">
+            <div class="notif-popup-body">
               {% if notifications %}
                 {% for notif in notifications %}
-                <a href="{{ notif.url|default:'#' }}"
+                <a href="{% if notif.post %}{% url 'post_detail' notif.post.slug %}{% else %}{% url 'notification_list' %}{% endif %}"
                    class="notif-item {% if not notif.is_read %}unread{% endif %}">
                   <div class="notif-dot"></div>
                   <div class="notif-text">
-                    <p>{{ notif.message }}</p>
-                    <span class="notif-time">{{ notif.created_at|timesince }} ago</span>
+                    <p>
+                      {% if notif.notif_type == 'clap' %}
+                        <strong>{{ notif.sender.username }}</strong> ne aapki story ko clap kiya{% if notif.post %} &mdash; {{ notif.post.title|truncatechars:30 }}{% endif %}
+                      {% elif notif.notif_type == 'comment' %}
+                        <strong>{{ notif.sender.username }}</strong> ne aapki story pe comment kiya{% if notif.post %} &mdash; {{ notif.post.title|truncatechars:30 }}{% endif %}
+                      {% elif notif.notif_type == 'reply' %}
+                        <strong>{{ notif.sender.username }}</strong> ne aapke comment ka reply diya{% if notif.post %} &mdash; {{ notif.post.title|truncatechars:30 }}{% endif %}
+                      {% elif notif.notif_type == 'follow' %}
+                        <strong>{{ notif.sender.username }}</strong> aapko follow karne laga
+                      {% else %}
+                        <strong>{{ notif.sender.username }}</strong> ne kuch kiya
+                      {% endif %}
+                    </p>
+                    <span class="notif-time">{{ notif.created_at|timesince }} pehle</span>
                   </div>
                 </a>
                 {% endfor %}
@@ -258,17 +226,16 @@
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                   </svg>
-                  <p>No notifications yet</p>
+                  <p>Abhi koi notification nahi</p>
                 </div>
               {% endif %}
             </div>
 
-            <div class="notif-footer">
-              <a href="{% url 'notification_list' %}">View all notifications →</a>
+            <div class="notif-popup-footer">
+              <a href="{% url 'notification_list' %}">Saari notifications dekhen &rarr;</a>
             </div>
 
           </div>
-          <!-- /Popup Panel -->
         </div>
         <!-- ══════ END NOTIFICATION ══════ -->
 
@@ -325,7 +292,7 @@
 <!-- ═══════════════ FOOTER ═══════════════ -->
 <footer class="footer">
   <div class="footer-inner">
-    <span>© 2026 SnapRead</span>
+    <span>&copy; 2026 SnapRead</span>
     <span>Developed by Aniket Shrivastava</span>
     <a href="#">Help</a>
     <a href="#">Privacy</a>
@@ -334,24 +301,20 @@
 </footer>
 
 <script>
-  /* ── Avatar dropdown ── */
   function toggleDropdown() {
     document.getElementById('navDropdown').classList.toggle('open');
     document.getElementById('notifPopup').classList.remove('open');
   }
 
-  /* ── Notification popup ── */
   function toggleNotif(e) {
     e.stopPropagation();
     document.getElementById('notifPopup').classList.toggle('open');
     document.getElementById('navDropdown').classList.remove('open');
   }
 
-  /* ── Close both on outside click ── */
   document.addEventListener('click', function(e) {
-    const notifWrap = document.getElementById('notifWrap');
+    const notifWrap  = document.getElementById('notifWrap');
     const avatarWrap = document.querySelector('.nav-avatar-wrap');
-
     if (notifWrap && !notifWrap.contains(e.target)) {
       document.getElementById('notifPopup').classList.remove('open');
     }

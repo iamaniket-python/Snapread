@@ -1,0 +1,134 @@
+{% extends 'Base/base.html' %}
+{% block title %}Bookmarks — SnapRead{% endblock %}
+
+{% block content %}
+
+<div class="bookmarks-wrap">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+    <h1 class="bookmarks-title">Bookmarks</h1>
+    <svg width="28" height="28" fill="none" stroke="var(--gray-400)" stroke-width="1.5" viewBox="0 0 24 24">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+    </svg>
+  </div>
+  <p class="bookmarks-count">
+    {% if bookmarks %}
+      {{ bookmarks|length }} saved stor{{ bookmarks|length|pluralize:"y,ies" }}
+    {% else %}
+      0 saved stories
+    {% endif %}
+  </p>
+
+  {% if bookmarks %}
+    <div class="post-list">
+      {% for bookmark in bookmarks %}
+      <article class="post-card">
+
+        <!-- Left: Content -->
+        <div>
+          <!-- Author row -->
+          <div class="post-card-meta">
+            <div style="width:22px;height:22px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gray-600);">
+              {% if bookmark.post.author.profile.profile_image and bookmark.post.author.profile.profile_image.name %}
+                <img src="{{ bookmark.post.author.profile.profile_image.url }}"
+                     alt="{{ bookmark.post.author.username }}"
+                     style="width:100%;height:100%;object-fit:cover;display:block;" />
+              {% else %}
+                {{ bookmark.post.author.username|slice:":1"|upper }}
+              {% endif %}
+            </div>
+            <span class="post-card-author">{{ bookmark.post.author.username }}</span>
+            <span class="post-card-dot">·</span>
+            <span style="font-size:13px;color:var(--gray-600);">{{ bookmark.post.created_at|date:"M d, Y" }}</span>
+            {% if bookmark.post.read_time %}
+              <span class="post-card-dot">·</span>
+              <span style="font-size:13px;color:var(--gray-600);">{{ bookmark.post.read_time }} min read</span>
+            {% endif %}
+          </div>
+
+          <!-- Title -->
+          <h2>
+            <a href="{% url 'post_detail' bookmark.post.slug %}">{{ bookmark.post.title }}</a>
+          </h2>
+
+          <!-- Excerpt -->
+          <p class="post-card-excerpt">{{ bookmark.post.content|truncatewords:28|striptags }}</p>
+
+          <!-- Footer -->
+          <div class="post-card-footer">
+            <div class="post-card-info">
+              {% if bookmark.post.category %}
+                <a href="?category={{ bookmark.post.category.slug }}" class="post-card-tag">
+                  {{ bookmark.post.category.name }}
+                </a>
+              {% endif %}
+
+              <span style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--gray-600);">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                {{ bookmark.post.views }}
+              </span>
+
+              <span style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--gray-600);">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/>
+                </svg>
+                {{ bookmark.post.total_claps|default:0 }}
+              </span>
+
+              <span style="font-size:12px;color:var(--gray-400);">
+                Saved {{ bookmark.created_at|timesince }} ago
+              </span>
+            </div>
+
+            <!-- Remove bookmark -->
+            <div class="post-card-actions">
+              <form method="POST" action="{% url 'bookmark_toggle' bookmark.post.slug %}">
+                {% csrf_token %}
+                <button type="submit" class="icon-btn active" title="Remove bookmark">
+                  <svg width="14" height="14" fill="currentColor" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Remove
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Thumbnail -->
+        {% if bookmark.post.featured_image and bookmark.post.featured_image.name %}
+          <a href="{% url 'post_detail' bookmark.post.slug %}">
+            <img src="{{ bookmark.post.featured_image.url }}"
+                 alt="{{ bookmark.post.title }}"
+                 class="post-card-thumb" />
+          </a>
+        {% else %}
+          <div class="post-card-thumb"
+               style="display:flex;align-items:center;justify-content:center;background:var(--gray-100);">
+            <svg width="28" height="28" fill="none" stroke="var(--gray-300)" stroke-width="1.5" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9l4-4 4 4 4-4 4 4M3 15l4 4 4-4 4 4"/>
+            </svg>
+          </div>
+        {% endif %}
+
+      </article>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+      </svg>
+      <p>Abhi koi bookmark nahi hai.</p>
+      <a href="{% url 'post_feed' %}">Stories explore karein →</a>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'Base/base.html' %}
+{% block title %}Notifications — SnapRead{% endblock %}
+
+{% block content %}
+
+<div class="notif-wrap">
+
+  <!-- Header -->
+  <div class="notif-header">
+    <h1 class="notif-title">Notifications</h1>
+    {% if notifications %}
+      <form method="POST" action="{% url 'mark_notifications_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-ghost btn-sm">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+          Mark all read
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if unread_count %}
+    <p style="font-size:13px; color:var(--gray-600); margin-bottom:20px;">
+      <strong style="color:var(--gray-800);">{{ unread_count }}</strong> unread notification{{ unread_count|pluralize }}
+    </p>
+  {% endif %}
+
+  <!-- Notification List -->
+  {% if notifications %}
+    <div class="notif-list">
+      {% for notif in notifications %}
+      <div class="notif-item {% if not notif.is_read %}unread{% endif %}">
+
+        <!-- Icon -->
+        <div class="notif-icon">
+          {% if notif.notif_type == 'clap' %}
+            <svg width="16" height="16" fill="none" stroke="#1a8917" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/>
+            </svg>
+          {% elif notif.notif_type == 'comment' %}
+            <svg width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          {% elif notif.notif_type == 'reply' %}
+            <svg width="16" height="16" fill="none" stroke="#7c3aed" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/>
+            </svg>
+          {% elif notif.notif_type == 'follow' %}
+            <svg width="16" height="16" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          {% else %}
+            <svg width="16" height="16" fill="none" stroke="var(--gray-600)" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
+            </svg>
+          {% endif %}
+        </div>
+
+        <!-- Body -->
+        <div class="notif-body">
+          <div>
+            {% if notif.notif_type == 'clap' %}
+              <strong>{{ notif.sender.username }}</strong> ne aapki story ko clap kiya
+              {% if notif.post %}
+                &mdash; <a href="{% url 'post_detail' notif.post.slug %}" class="notif-link">{{ notif.post.title }}</a>
+              {% endif %}
+
+            {% elif notif.notif_type == 'comment' %}
+              <strong>{{ notif.sender.username }}</strong> ne aapki story pe comment kiya
+              {% if notif.post %}
+                &mdash; <a href="{% url 'post_detail' notif.post.slug %}" class="notif-link">{{ notif.post.title }}</a>
+              {% endif %}
+
+            {% elif notif.notif_type == 'reply' %}
+              <strong>{{ notif.sender.username }}</strong> ne aapke comment ka reply diya
+              {% if notif.post %}
+                &mdash; <a href="{% url 'post_detail' notif.post.slug %}" class="notif-link">{{ notif.post.title }}</a>
+              {% endif %}
+
+            {% elif notif.notif_type == 'follow' %}
+              <strong>{{ notif.sender.username }}</strong> aapko follow karne laga
+
+            {% else %}
+              <strong>{{ notif.sender.username }}</strong> ne kuch kiya
+            {% endif %}
+          </div>
+          <div class="notif-time">{{ notif.created_at|timesince }} pehle</div>
+        </div>
+
+        <!-- Unread dot -->
+        {% if not notif.is_read %}
+          <span class="notif-dot"></span>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- Empty state -->
+    <div class="empty-state">
+      <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <p>Abhi koi notification nahi hai.</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<style>
+.notif-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--gray-200);
+  transition: background .15s;
+  border-radius: var(--radius);
+  position: relative;
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item.unread {
+  background: #f8fbf8;
+  padding: 18px 16px;
+  border-bottom-color: transparent;
+  margin-bottom: 2px;
+}
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notif-item.unread .notif-icon {
+  background: var(--green-light);
+}
+
+.notif-body {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gray-800);
+}
+
+.notif-body strong {
+  font-weight: 600;
+  color: var(--black);
+}
+
+.notif-link {
+  color: var(--gray-800);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.notif-link:hover {
+  color: var(--black);
+}
+
+.notif-time {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+</style>
+
+{% endblock %}

@@ -3,7 +3,6 @@
 
 {% block content %}
 <style>
- 
 </style>
 
 <!-- ────────────── Delete Confirmation Modal ────────────── -->
@@ -111,13 +110,18 @@
                 </span>
 
                 {% if request.user.is_authenticated %}
-                  <button class="icon-btn {% if post.slug in user_clapped_slugs %}active{% endif %}"
-                          onclick="clapPost(this, '{{ post.slug }}')">
+                  <button
+                    class="icon-btn {% if post.slug in user_clapped_slugs %}active{% endif %}"
+                    data-slug="{{ post.slug }}"
+                    data-clapped="{% if post.slug in user_clapped_slugs %}true{% else %}false{% endif %}"
+                    onclick="clapPost(this)">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/></svg>
                     <span class="clap-num">{{ post.total_claps|default:0 }}</span>
                   </button>
-                  <button class="icon-btn {% if post.slug in user_bookmarked_slugs %}active{% endif %}"
-                          onclick="toggleBookmark(this, '{{ post.slug }}')">
+                  <button
+                    class="icon-btn {% if post.slug in user_bookmarked_slugs %}active{% endif %}"
+                    data-slug="{{ post.slug }}"
+                    onclick="toggleBookmark(this)">
                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                   </button>
                 {% else %}
@@ -191,7 +195,7 @@
   <aside class="profile-sidebar-col">
     <div class="sidebar-inner">
 
-      <!-- Profile Image — FIXED -->
+      <!-- Profile Image -->
       <div class="sa-wrap">
         {% if profile.profile_image and profile.profile_image.name %}
           <img
@@ -284,40 +288,89 @@ function closeDeleteModal() {
   document.body.style.overflow = '';
 }
 
-/* Click outside = close */
 document.getElementById('deleteModal').addEventListener('click', function(e) {
   if (e.target === this) closeDeleteModal();
 });
 
-/* Escape key = close */
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeDeleteModal();
 });
 
 /* ── Clap ── */
-function clapPost(btn, slug) {
+function clapPost(btn) {
+  const slug = btn.dataset.slug;
+
+  /* Prevent double-clicks while request is in flight */
+  if (btn.dataset.loading === 'true') return;
+  btn.dataset.loading = 'true';
+
   fetch('/posts/' + slug + '/clap/', {
     method: 'POST',
-    headers: { 'X-CSRFToken': CSRF },
+    headers: {
+      'X-CSRFToken': CSRF,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
     body: new URLSearchParams({ count: 1 }),
   })
-  .then(r => r.json())
-  .then(data => {
-    btn.classList.add('active');
-    btn.querySelector('.clap-num').textContent = data.total_claps;
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(data) {
+    /* Update count */
+    if (data.total_claps !== undefined) {
+      btn.querySelector('.clap-num').textContent = data.total_claps;
+    }
+
+    /* Toggle active state based on server response;
+       fall back to toggling if server doesn't send clapped flag */
+    if (data.clapped !== undefined) {
+      btn.classList.toggle('active', data.clapped);
+      btn.dataset.clapped = data.clapped ? 'true' : 'false';
+    } else {
+      /* Server only returns total — just mark active */
+      btn.classList.add('active');
+      btn.dataset.clapped = 'true';
+    }
+  })
+  .catch(function(err) {
+    console.error('Clap failed:', err);
+  })
+  .finally(function() {
+    btn.dataset.loading = 'false';
   });
 }
 
 /* ── Bookmark ── */
-function toggleBookmark(btn, slug) {
+function toggleBookmark(btn) {
+  const slug = btn.dataset.slug;
+
+  if (btn.dataset.loading === 'true') return;
+  btn.dataset.loading = 'true';
+
   fetch('/posts/' + slug + '/bookmark/', {
     method: 'POST',
-    headers: { 'X-CSRFToken': CSRF },
+    headers: {
+      'X-CSRFToken': CSRF,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
   })
-  .then(r => r.json())
-  .then(data => {
-    if (data.bookmarked) btn.classList.add('active');
-    else btn.classList.remove('active');
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(function(data) {
+    if (data.bookmarked !== undefined) {
+      btn.classList.toggle('active', data.bookmarked);
+    } else {
+      btn.classList.toggle('active');
+    }
+  })
+  .catch(function(err) {
+    console.error('Bookmark failed:', err);
+  })
+  .finally(function() {
+    btn.dataset.loading = 'false';
   });
 }
 </script>

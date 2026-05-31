@@ -56,6 +56,8 @@ urlpatterns = [
     # ─────────────────────────────────────────
     path('notifications/',          views.notification_list,      name='notification_list'),
     path('notifications/read-all/', views.mark_notifications_read, name='notifications_read_all'),
+    path('notifications/mark-read/', views.mark_notifications_read, name='mark_notifications_read'),
+    path('search/', views.search_view, name='search'),
 
     # ─────────────────────────────────────────
     # READ HISTORY

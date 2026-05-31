@@ -1,0 +1,228 @@
+{% extends 'Base/base.html' %}
+{% block title %}My Stories — SnapRead{% endblock %}
+
+{% block content %}
+
+<div class="bookmarks-wrap">
+
+  <!-- Header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+    <h1 class="bookmarks-title">My Stories</h1>
+    <a href="{% url 'post_create' %}" class="btn btn-dark btn-sm">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Write new
+    </a>
+  </div>
+
+  <p class="bookmarks-count">
+    {% if posts %}
+      {{ posts|length }} stor{{ posts|length|pluralize:"y,ies" }}
+      —
+      <span style="color:var(--green);">{{ published_count }} published</span>
+      {% if draft_count %}&nbsp;· <span style="color:#856404;">{{ draft_count }} draft</span>{% endif %}
+    {% else %}
+      0 stories
+    {% endif %}
+  </p>
+
+  {% if posts %}
+
+    <!-- Filter tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--gray-200);margin-bottom:28px;">
+      <a href="?filter=all" class="my-tab {% if filter == 'all' or not filter %}my-tab-active{% endif %}">All</a>
+      <a href="?filter=published" class="my-tab {% if filter == 'published' %}my-tab-active{% endif %}">Published</a>
+      <a href="?filter=draft" class="my-tab {% if filter == 'draft' %}my-tab-active{% endif %}">Drafts</a>
+    </div>
+
+    <div class="post-list">
+      {% for post in posts %}
+      <article class="post-card">
+
+        <!-- Left: Content -->
+        <div>
+          <!-- Status + date row -->
+          <div class="post-card-meta">
+            {% if post.status == 'draft' %}
+              <span style="background:#fff3cd;color:#856404;font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px;">Draft</span>
+            {% else %}
+              <span style="background:var(--green-light);color:var(--green);font-size:11px;font-weight:600;padding:2px 9px;border-radius:99px;">Published</span>
+            {% endif %}
+            <span class="post-card-dot">·</span>
+            <span style="font-size:13px;color:var(--gray-600);">{{ post.created_at|date:"M d, Y" }}</span>
+            {% if post.read_time %}
+              <span class="post-card-dot">·</span>
+              <span style="font-size:13px;color:var(--gray-600);">{{ post.read_time }} min read</span>
+            {% endif %}
+          </div>
+
+          <!-- Title -->
+          <h2>
+            <a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a>
+          </h2>
+
+          <!-- Excerpt -->
+          <p class="post-card-excerpt">{{ post.content|truncatewords:28|striptags }}</p>
+
+          <!-- Footer -->
+          <div class="post-card-footer">
+            <div class="post-card-info">
+              {% if post.category %}
+                <span class="post-card-tag">{{ post.category.name }}</span>
+              {% endif %}
+
+              <span style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--gray-600);">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                {{ post.views }}
+              </span>
+
+              <span style="display:flex;align-items:center;gap:4px;font-size:13px;color:var(--gray-600);">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M14.5 2a2.5 2.5 0 0 1 2.5 2.5v.5a2.5 2.5 0 0 1 1.5 2.3V10a7 7 0 0 1-7 7H9a7 7 0 0 1-7-7V7.5A2.5 2.5 0 0 1 4.5 5H5V4.5A2.5 2.5 0 0 1 7.5 2h7z"/>
+                </svg>
+                {{ post.total_claps|default:0 }}
+              </span>
+            </div>
+
+            <!-- Actions -->
+            <div class="post-card-actions" style="gap:6px;">
+              <a href="{% url 'post_edit' post.slug %}" class="icon-btn">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Edit
+              </a>
+
+              <span style="width:1px;height:14px;background:var(--gray-200);display:inline-block;"></span>
+
+              <form method="POST" action="{% url 'post_publish' post.slug %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="icon-btn">
+                  {% if post.status == 'draft' %}
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
+                    </svg>
+                    Publish
+                  {% else %}
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                    </svg>
+                    Unpublish
+                  {% endif %}
+                </button>
+              </form>
+
+              <span style="width:1px;height:14px;background:var(--gray-200);display:inline-block;"></span>
+
+              <button
+                class="icon-btn"
+                style="color:#d04040;"
+                onclick="openDeleteModal('{{ post.slug }}', '{{ post.title|escapejs }}')">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Thumbnail -->
+        {% if post.featured_image and post.featured_image.name %}
+          <a href="{% url 'post_detail' post.slug %}">
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="post-card-thumb" />
+          </a>
+        {% else %}
+          <div class="post-card-thumb" style="display:flex;align-items:center;justify-content:center;background:var(--gray-100);">
+            <svg width="28" height="28" fill="none" stroke="var(--gray-300)" stroke-width="1.5" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9l4-4 4 4 4-4 4 4M3 15l4 4 4-4 4 4"/>
+            </svg>
+          </div>
+        {% endif %}
+
+      </article>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+      <p>Abhi koi story nahi likhi.</p>
+      <a href="{% url 'post_create' %}">Apni pehli story likhein →</a>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <div class="modal-icon">
+      <svg width="22" height="22" fill="none" stroke="#E24B4A" stroke-width="2.2" viewBox="0 0 24 24">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </div>
+    <h3 class="modal-title">Story delete karein?</h3>
+    <p class="modal-story-name" id="modalStoryName"></p>
+    <p class="modal-sub">Yeh action undo nahi ho sakta. Saare comments aur claps bhi hata diye jayenge.</p>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <form id="deleteForm" method="POST" style="flex:1;display:flex;">
+        {% csrf_token %}
+        <button type="submit" class="modal-delete" style="flex:1;">Yes, Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.my-tab {
+  padding: 10px 0;
+  margin-right: 28px;
+  font-size: 14px;
+  text-decoration: none;
+  color: var(--gray-600);
+  border-bottom: 2px solid transparent;
+  transition: color .15s;
+}
+.my-tab:hover { color: var(--black); }
+.my-tab-active {
+  color: var(--black);
+  border-bottom-color: var(--black);
+  font-weight: 500;
+}
+</style>
+
+<script>
+function openDeleteModal(slug, title) {
+  document.getElementById('modalStoryName').textContent = '\u201C' + title + '\u201D';
+  document.getElementById('deleteForm').action = '/posts/' + slug + '/delete/';
+  document.getElementById('deleteModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDeleteModal();
+});
+</script>
+
+{% endblock %}

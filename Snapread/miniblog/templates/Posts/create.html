@@ -53,7 +53,6 @@
     margin-bottom: 22px;
   }
 
-  /* Upload zone */
   .upload-zone {
     display: flex;
     align-items: center;
@@ -70,58 +69,56 @@
     border-color: var(--gray-500);
     background: var(--gray-100);
   }
-  .upload-icon {
-    font-size: 22px;
-    color: var(--gray-500);
-  }
-  .upload-text {
-    font-size: 14px;
-    color: var(--gray-600);
-  }
-  .upload-text strong {
-    color: var(--black);
-    font-weight: 600;
-  }
+  .upload-icon { font-size: 22px; color: var(--gray-500); }
+  .upload-text { font-size: 14px; color: var(--gray-600); }
+  .upload-text strong { color: var(--black); font-weight: 600; }
 
-  /* Preview thumbnails */
   .preview-strip {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 10px;
   }
-  .preview-thumb {
-    position: relative;
-    display: inline-block;
-  }
+  .preview-thumb { position: relative; display: inline-block; }
   .preview-thumb img {
-    width: 64px;
-    height: 64px;
+    width: 64px; height: 64px;
     object-fit: cover;
     border-radius: 6px;
     border: 1px solid var(--gray-200);
     display: block;
   }
   .preview-thumb .remove-btn {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    width: 18px;
-    height: 18px;
+    position: absolute; top: -5px; right: -5px;
+    width: 18px; height: 18px;
     border-radius: 50%;
-    background: var(--black);
-    color: #fff;
-    border: none;
-    cursor: pointer;
+    background: var(--black); color: #fff;
+    border: none; cursor: pointer;
     font-size: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1; padding: 0;
   }
 
-  /* Content */
+  /* existing image preview (edit mode) */
+  .current-img-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    background: var(--gray-50);
+  }
+  .current-img-wrap img {
+    width: 64px; height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--gray-200);
+  }
+  .current-img-info { flex: 1; }
+  .current-img-info p { font-size: 13px; color: var(--gray-600); margin-bottom: 4px; }
+  .current-img-info span { font-size: 12px; color: var(--gray-400); }
+
   .editor-content {
     width: 100%;
     min-height: 300px;
@@ -141,55 +138,42 @@
   .editor-content::placeholder { color: var(--gray-300); }
 
   .word-count {
-    font-size: 12px;
-    color: var(--gray-500);
-    text-align: right;
-    margin-top: 6px;
-    margin-bottom: 20px;
+    font-size: 12px; color: var(--gray-500);
+    text-align: right; margin-top: 6px; margin-bottom: 20px;
   }
 
-  /* Publish button */
   .publish-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #fff;
-    background: var(--black);
-    border: none;
-    border-radius: var(--radius);
-    cursor: pointer;
-    letter-spacing: .01em;
+    display: flex; align-items: center;
+    justify-content: center; gap: 8px;
+    width: 100%; padding: 14px;
+    font-size: 16px; font-weight: 600;
+    color: #fff; background: var(--black);
+    border: none; border-radius: var(--radius);
+    cursor: pointer; letter-spacing: .01em;
     transition: background .15s;
   }
   .publish-btn:hover { background: var(--gray-800); }
 
   .discard-link {
-    display: block;
-    text-align: center;
-    margin-top: 14px;
-    font-size: 13px;
-    color: var(--gray-500);
-    text-decoration: none;
+    display: block; text-align: center;
+    margin-top: 14px; font-size: 13px;
+    color: var(--gray-500); text-decoration: none;
   }
   .discard-link:hover { color: var(--black); }
 
   .hidden-meta { display: none; }
+
+  .form-error { font-size: 13px; color: #dc2626; margin-top: 4px; }
 </style>
 
 <div class="wrap">
 
-  <!-- Top bar -->
   <div class="topbar">
     <a href="{% url 'post_feed' %}" class="brand">SnapRead</a>
   </div>
 
   {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" style="margin-bottom:16px;">{{ message }}</div>
+  <div class="alert alert-{{ message.tags }}" style="margin-bottom:16px;">{{ message }}</div>
   {% endfor %}
 
   <form method="POST" action="" enctype="multipart/form-data" id="post-form">
@@ -197,12 +181,9 @@
 
     <!-- Hidden Django fields -->
     <div class="hidden-meta">
-      <select name="status">
-        <option value="published" selected>Published</option>
-        <option value="draft">Draft</option>
-      </select>
-      <select name="category"></select>
-      <select name="tags" multiple></select>
+      {{ form.status }}
+      {{ form.category }}
+      {{ form.tags }}
     </div>
 
     <!-- Title -->
@@ -214,19 +195,30 @@
       oninput="autoResize(this); updateWC()"
     >{{ form.title.value|default:'' }}</textarea>
     {% if form.title.errors %}
-      <p class="form-error" style="margin-bottom:8px;">{{ form.title.errors.0 }}</p>
+    <p class="form-error" style="margin-bottom:8px;">{{ form.title.errors.0 }}</p>
     {% endif %}
 
     <div class="divider"></div>
 
-    <!-- Image upload -->
+    <!-- Existing image in edit mode -->
+    {% if action == 'Edit' and form.instance.featured_image and form.instance.featured_image.name %}
+    <div class="current-img-wrap" id="current-img-wrap">
+      <img src="{{ form.instance.featured_image.url }}" alt="Current image">
+      <div class="current-img-info">
+        <p>Current featured image</p>
+        <span>Naya select karo replace karne ke liye</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Image upload — FIXED: name="featured_image" -->
     <label class="upload-zone" for="img-upload">
       <span class="upload-icon">&#128247;</span>
       <span class="upload-text"><strong>Image upload karo</strong> &mdash; device se chuniye</span>
     </label>
     <input
       type="file"
-      name="cover_image"
+      name="featured_image"
       id="img-upload"
       accept="image/*"
       style="display:none"
@@ -244,12 +236,11 @@
       oninput="autoResize(this); updateWC()"
     >{{ form.content.value|default:'' }}</textarea>
     {% if form.content.errors %}
-      <p class="form-error" style="margin-top:6px;">{{ form.content.errors.0 }}</p>
+    <p class="form-error" style="margin-top:6px;">{{ form.content.errors.0 }}</p>
     {% endif %}
 
     <div class="word-count" id="word-count">0 words</div>
 
-    <!-- Publish -->
     <button type="submit" class="publish-btn">
       &#10148; {% if action == 'Edit' %}Save changes{% else %}Publish story{% endif %}
     </button>
@@ -283,6 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function handleUpload(input) {
   var strip = document.getElementById('preview-strip');
+  var currentWrap = document.getElementById('current-img-wrap');
   var file = input.files[0];
   if (!file) return;
 
@@ -293,6 +285,8 @@ function handleUpload(input) {
   }
 
   strip.innerHTML = '';
+  if (currentWrap) currentWrap.style.display = 'none';
+
   var reader = new FileReader();
   reader.onload = function (e) {
     var wrap = document.createElement('div');
@@ -309,6 +303,7 @@ function handleUpload(input) {
     btn.onclick = function () {
       wrap.remove();
       input.value = '';
+      if (currentWrap) currentWrap.style.display = 'flex';
     };
 
     wrap.appendChild(img);

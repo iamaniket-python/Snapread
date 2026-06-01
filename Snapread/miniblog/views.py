@@ -9,10 +9,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.contrib.auth.views import PasswordChangeView
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
-
+from django.contrib.auth.forms import SetPasswordForm
 from .models import (
     Profile, Post, Category, Tag,
     Comment, Clap, Bookmark,
@@ -552,9 +551,18 @@ def tag_list(request):
 
 
 
-class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
-    template_name = 'Auth/password_change.html'
-    success_url = reverse_lazy('password_change')
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = 'Authentication/password_change.html'
+    form_class = SetPasswordForm  # old password nahi maangta
+    success_url = reverse_lazy('login')
+
+    def dispatch(self, request, *args, **kwargs):
+        return super(PasswordChangeView, self).dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user if self.request.user.is_authenticated else None
+        return kwargs
 
     def form_valid(self, form):
         messages.success(self.request, 'Password successfully change ho gaya!')

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404 — SnapRead</title>
+  <title>500 — SnapRead</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
 
@@ -17,13 +17,12 @@
       overflow: hidden;
     }
 
-    /* Subtle background texture */
     body::before {
       content: '';
       position: fixed; inset: 0;
       background-image:
-        radial-gradient(circle at 20% 20%, rgba(10,102,72,.06) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(10,102,72,.04) 0%, transparent 50%);
+        radial-gradient(circle at 20% 20%, rgba(220,38,38,.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(220,38,38,.03) 0%, transparent 50%);
       pointer-events: none;
     }
 
@@ -54,18 +53,18 @@
     .code::after {
       content: attr(data-code);
       position: absolute; inset: 0;
-      color: #0a6648;
+      color: #dc2626;
       clip-path: inset(0 0 60% 0);
-      opacity: .18;
+      opacity: .15;
       transform: translateY(6px);
     }
 
     .divider {
       width: 48px; height: 2px;
-      background: #0a6648;
+      background: #dc2626;
       margin: 0 auto 24px;
       border-radius: 99px;
-      opacity: .5;
+      opacity: .4;
     }
 
     .title {
@@ -110,8 +109,18 @@
     }
     .btn-ghost:hover { border-color: #111; color: #111; }
 
+    /* Glitch animation on illustration */
     .illustration {
       margin-bottom: 32px;
+      animation: glitch 4s infinite;
+    }
+
+    @keyframes glitch {
+      0%, 90%, 100% { transform: translate(0); }
+      92%  { transform: translate(-2px, 1px); }
+      94%  { transform: translate(2px, -1px); }
+      96%  { transform: translate(-1px, 2px); }
+      98%  { transform: translate(1px, -2px); }
     }
   </style>
 </head>
@@ -121,29 +130,34 @@
 
   <div class="illustration">
     <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Book -->
-      <rect x="20" y="15" width="36" height="50" rx="4" fill="#e0f5ee" stroke="#0a6648" stroke-width="1.5"/>
-      <rect x="24" y="22" width="20" height="2" rx="1" fill="#0a6648" opacity=".4"/>
-      <rect x="24" y="28" width="26" height="2" rx="1" fill="#0a6648" opacity=".3"/>
-      <rect x="24" y="34" width="22" height="2" rx="1" fill="#0a6648" opacity=".3"/>
-      <rect x="24" y="40" width="18" height="2" rx="1" fill="#0a6648" opacity=".2"/>
-      <!-- Spine -->
-      <rect x="20" y="15" width="5" height="50" rx="2" fill="#0a6648" opacity=".15"/>
-      <!-- Question mark page -->
-      <rect x="64" y="15" width="36" height="50" rx="4" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
-      <text x="82" y="50" text-anchor="middle" font-family="Georgia,serif" font-size="28" fill="#f97316" opacity=".7">?</text>
-      <!-- Torn edge -->
-      <path d="M56 20 Q60 25 56 30 Q60 35 56 40 Q60 45 56 50 Q60 55 56 60" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="3 2" fill="none"/>
+      <!-- Server/machine body -->
+      <rect x="30" y="10" width="60" height="55" rx="5" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+      <!-- Screen -->
+      <rect x="38" y="18" width="44" height="28" rx="3" fill="#fff" stroke="#fca5a5" stroke-width="1"/>
+      <!-- Error lines on screen -->
+      <rect x="42" y="23" width="20" height="2.5" rx="1" fill="#dc2626" opacity=".5"/>
+      <rect x="42" y="29" width="32" height="2.5" rx="1" fill="#dc2626" opacity=".3"/>
+      <rect x="42" y="35" width="26" height="2.5" rx="1" fill="#dc2626" opacity=".3"/>
+      <!-- X mark -->
+      <line x1="66" y1="22" x2="72" y2="28" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+      <line x1="72" y1="22" x2="66" y2="28" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+      <!-- Power button -->
+      <circle cx="60" cy="56" r="5" fill="#fca5a5" stroke="#dc2626" stroke-width="1.5"/>
+      <line x1="60" y1="53" x2="60" y2="56" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- Smoke/steam -->
+      <path d="M45 10 Q43 5 45 1" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/>
+      <path d="M60 10 Q58 4 60 0" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".4"/>
+      <path d="M75 10 Q73 5 75 1" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".5"/>
     </svg>
   </div>
 
-  <div class="code" data-code="404">404</div>
+  <div class="code" data-code="500">500</div>
   <div class="divider"></div>
 
-  <h1 class="title">Yeh page nahi mila</h1>
+  <h1 class="title">Server mein kuch gadbad hui</h1>
   <p class="desc">
-    Jo page aap dhundh rahe hain woh exist nahi karta,<br/>
-    delete ho gaya, ya URL galat hai.
+    Hamare server ne kuch unexpected kar diya.<br/>
+    Hum isko theek karne ki koshish kar rahe hain — thodi der mein dobara try karein.
   </p>
 
   <div class="actions">
@@ -153,11 +167,12 @@
       </svg>
       Home pe jaayein
     </a>
-    <a href="javascript:history.back()" class="btn btn-ghost">
+    <a href="javascript:location.reload()" class="btn btn-ghost">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M19 12H5m7-7-7 7 7 7"/>
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
       </svg>
-      Wapas jaayein
+      Dobara try karein
     </a>
   </div>
 

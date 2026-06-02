@@ -3,11 +3,388 @@
 
 {% block content %}
 
+<style>
+  /* ── Tags Bar ─────────────────────────────── */
+  .tags-bar {
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    background: var(--bg, #fff);
+    position: sticky;
+    top: 0;
+    z-index: 10;  /* navbar se kam, dropdown se bhi kam */
+  }
+  .tags-bar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tags-bar-inner::-webkit-scrollbar { display: none; }
+
+  .tag-pill {
+    flex-shrink: 0;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-500, #6b7280);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .tag-pill:hover { color: var(--gray-900, #111); }
+  .tag-pill.active {
+    color: var(--gray-900, #111);
+    border-bottom-color: var(--gray-900, #111);
+  }
+
+  /* ── Layout ───────────────────────────────── */
+  .feed-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 64px;
+  }
+  @media (max-width: 900px) {
+    .feed-layout { grid-template-columns: 1fr; gap: 40px; }
+    .feed-sidebar { display: none; }
+  }
+
+  /* ── Post Card ────────────────────────────── */
+  .post-card {
+    display: flex;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--gray-100, #f3f4f6);
+    animation: fadeUp .4s ease both;
+  }
+  .post-card:first-child { padding-top: 0; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .post-card:nth-child(1)  { animation-delay: 0ms; }
+  .post-card:nth-child(2)  { animation-delay: 40ms; }
+  .post-card:nth-child(3)  { animation-delay: 80ms; }
+  .post-card:nth-child(4)  { animation-delay: 120ms; }
+  .post-card:nth-child(5)  { animation-delay: 160ms; }
+  .post-card:nth-child(6)  { animation-delay: 200ms; }
+  .post-card:nth-child(7)  { animation-delay: 240ms; }
+  .post-card:nth-child(8)  { animation-delay: 280ms; }
+  .post-card:nth-child(9)  { animation-delay: 320ms; }
+  .post-card:nth-child(10) { animation-delay: 360ms; }
+
+  .post-card-body { flex: 1; min-width: 0; }
+
+  .post-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .post-card-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .post-card-author {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-800, #1f2937);
+    text-decoration: none;
+  }
+  .post-card-author:hover { text-decoration: underline; }
+  .post-card-dot { color: var(--gray-400, #9ca3af); font-size: 13px; }
+  .post-card-date { font-size: 13px; color: var(--gray-500, #6b7280); }
+
+  .post-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0 0 6px;
+    color: var(--gray-900, #111);
+  }
+  .post-card h2 a {
+    text-decoration: none;
+    color: inherit;
+  }
+  .post-card h2 a:hover { text-decoration: underline; }
+
+  .post-card-excerpt {
+    font-size: 14px;
+    color: var(--gray-600, #4b5563);
+    line-height: 1.6;
+    margin: 0 0 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .post-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .post-card-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .post-card-tag {
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--gray-100, #f3f4f6);
+    color: var(--gray-700, #374151);
+    padding: 3px 10px;
+    border-radius: 99px;
+    text-decoration: none;
+    transition: background .15s;
+  }
+  .post-card-tag:hover { background: var(--gray-200, #e5e7eb); }
+  .post-card-info span {
+    font-size: 12px;
+    color: var(--gray-500, #6b7280);
+  }
+
+  .post-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ── Thumbnail ────────────────────────────── */
+  .post-card-thumb {
+    width: 120px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  /* ── Icon Buttons ─────────────────────────── */
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--gray-500, #6b7280);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    position: relative;
+  }
+  .icon-btn:hover { background: var(--gray-100, #f3f4f6); color: var(--gray-900, #111); }
+  .icon-btn.active { color: #1a8917; }
+  .icon-btn.bookmarked { color: #1a8917; }
+
+  /* ── Three-dot Dropdown ───────────────────── */
+  .more-menu-wrap {
+    position: relative;
+  }
+  /* Dropdown ab fixed position use karta hai — koi bhi overflow clip nahi karega */
+  .more-dropdown {
+    display: none;
+    position: absolute;
+    background: #fff;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.15);
+    min-width: 190px;
+    z-index: 99999;  /* navbar se bhi upar */
+  }
+  .more-dropdown.open { display: block; }
+  .more-dropdown a,
+  .more-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 16px;
+    font-size: 13px;
+    color: var(--gray-700, #374151);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background .12s;
+    text-align: left;
+    box-sizing: border-box;
+  }
+  .more-dropdown a:hover,
+  .more-dropdown button:hover { background: var(--gray-50, #f9fafb); }
+  .more-dropdown .divider {
+    height: 1px;
+    background: var(--gray-100, #f3f4f6);
+    margin: 4px 0;
+  }
+  .more-dropdown .danger { color: #dc2626; }
+
+  /* ── Sidebar ──────────────────────────────── */
+  .feed-sidebar { padding-top: 0; }
+  .sidebar-section { margin-bottom: 36px; }
+  .sidebar-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-900, #111);
+    margin-bottom: 16px;
+  }
+  .sidebar-tag {
+    display: inline-block;
+    margin: 0 6px 8px 0;
+    padding: 6px 14px;
+    background: var(--gray-100, #f3f4f6);
+    border-radius: 99px;
+    font-size: 13px;
+    color: var(--gray-700, #374151);
+    text-decoration: none;
+    transition: background .15s;
+  }
+  .sidebar-tag:hover { background: var(--gray-200, #e5e7eb); }
+
+  .sidebar-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .sidebar-author img {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .sidebar-author-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900, #111);
+    margin: 0 0 2px;
+  }
+  .sidebar-author-bio {
+    font-size: 12px;
+    color: var(--gray-500, #6b7280);
+    margin: 0;
+  }
+
+  /* ── Signup Card ──────────────────────────── */
+  .signup-card {
+    background: var(--gray-50, #f9fafb);
+    border: 1px solid var(--gray-200, #e5e7eb);
+    padding: 24px;
+    border-radius: 8px;
+    margin-bottom: 36px;
+  }
+  .signup-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+  .signup-card p {
+    font-size: 14px;
+    color: var(--gray-600, #4b5563);
+    margin: 0 0 16px;
+  }
+
+  /* ── Pagination ───────────────────────────── */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 40px 0 0;
+  }
+  .btn-outline {
+    padding: 8px 18px;
+    border: 1px solid var(--gray-300, #d1d5db);
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700, #374151);
+    text-decoration: none;
+    transition: background .15s, border-color .15s;
+    background: #fff;
+    cursor: pointer;
+  }
+  .btn-outline:hover { background: var(--gray-50, #f9fafb); border-color: var(--gray-400, #9ca3af); }
+  .btn-dark {
+    display: block;
+    text-align: center;
+    padding: 10px 18px;
+    background: #111;
+    color: #fff;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity .15s;
+  }
+  .btn-dark:hover { opacity: .85; }
+
+  /* ── Follow btn ───────────────────────────── */
+  .btn-follow {
+    padding: 5px 14px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--gray-300, #d1d5db);
+    background: #fff;
+    color: var(--gray-700, #374151);
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .btn-follow:hover { background: var(--gray-50, #f9fafb); }
+
+  /* ── Empty ────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 80px 0;
+    color: var(--gray-400, #9ca3af);
+  }
+  .empty-state svg { margin-bottom: 16px; }
+  .empty-state p { font-size: 15px; }
+  .empty-state a { color: var(--gray-700, #374151); }
+
+  /* ── Toast ────────────────────────────────── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #111;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity .25s, transform .25s;
+    pointer-events: none;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+
+<!-- Toast -->
+<div id="toast"></div>
+
 <!-- Tags Bar -->
 <div class="tags-bar">
   <div class="tags-bar-inner">
-    <a href="" class="tag-pill {% if not request.GET.tag %}active{% endif %}">For you</a>
-    <a href="?trending=true" class="tag-pill {% if request.GET.trending %}active{% endif %}">Trending</a>
+    <a href="{% url 'post_feed' %}" class="tag-pill {% if not request.GET.tag and not request.GET.trending %}active{% endif %}">For you</a>
+    <a href="?trending=true" class="tag-pill {% if request.GET.trending %}active{% endif %}">🔥 Trending</a>
     {% for tag in tags %}
       <a href="?tag={{ tag.name }}"
          class="tag-pill {% if request.GET.tag == tag.name %}active{% endif %}">
@@ -25,9 +402,9 @@
     {% if posts %}
       <div class="post-list">
         {% for post in posts %}
-        <article class="post-card">
+        <article class="post-card" data-slug="{{ post.slug }}">
 
-          <div>
+          <div class="post-card-body">
             <!-- Author -->
             <div class="post-card-meta">
               <img src="{{ post.author.profile.profile_image.url|default:'/static/img/avatar.png' }}"
@@ -36,7 +413,7 @@
                 {{ post.author.username }}
               </a>
               <span class="post-card-dot">·</span>
-              <span class="text-muted text-sm">{{ post.published_at|date:"M d, Y" }}</span>
+              <span class="post-card-date">{{ post.published_at|date:"M d, Y" }}</span>
             </div>
 
             <!-- Title & Excerpt -->
@@ -56,25 +433,48 @@
               </div>
 
               <div class="post-card-actions">
-                <!-- Bookmark -->
                 {% if user.is_authenticated %}
-                <form method="POST" action="{% url 'bookmark_toggle' post.slug %}">
-                  {% csrf_token %}
-                  <button type="submit" class="icon-btn {% if post.is_bookmarked %}active{% endif %}" title="Bookmark">
-                    <svg width="16" height="16" fill="{% if post.is_bookmarked %}currentColor{% else %}none{% endif %}"
-                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                    </svg>
-                  </button>
-                </form>
-                {% endif %}
 
-                <!-- More -->
-                <button class="icon-btn" title="More">
-                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+                <!-- ✅ Bookmark Button (AJAX) -->
+                <button
+                  class="icon-btn bookmark-btn {% if post.slug in user_bookmarked_slugs %}bookmarked{% endif %}"
+                  title="{% if post.slug in user_bookmarked_slugs %}Remove bookmark{% else %}Bookmark{% endif %}"
+                  data-slug="{{ post.slug }}"
+                  data-url="{% url 'bookmark_toggle' post.slug %}"
+                  data-csrf="{{ csrf_token }}">
+                  <svg width="16" height="16"
+                       fill="{% if post.slug in user_bookmarked_slugs %}currentColor{% else %}none{% endif %}"
+                       stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                   </svg>
                 </button>
+
+                <!-- ✅ Three-dot Menu -->
+                <div class="more-menu-wrap">
+                  <button class="icon-btn more-btn" title="More"
+                          data-slug="{{ post.slug }}"
+                          data-edit-url="{% url 'post_edit' post.slug %}"
+                          data-delete-url="{% url 'post_delete' post.slug %}"
+                          data-detail-url="{% url 'post_detail' post.slug %}"
+                          data-author-url="{% url 'profile' post.author.username %}"
+                          data-is-owner="{% if post.author == user %}1{% else %}0{% endif %}">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="5" cy="12" r="1.5"/>
+                      <circle cx="12" cy="12" r="1.5"/>
+                      <circle cx="19" cy="12" r="1.5"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {% else %}
+                <!-- Guest ke liye sirf read link -->
+                <a href="{% url 'post_detail' post.slug %}" class="icon-btn" title="Read">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </a>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -92,17 +492,17 @@
 
       <!-- Pagination -->
       {% if posts.has_other_pages %}
-      <div style="display:flex;justify-content:center;gap:8px;padding:40px 0;">
+      <div class="pagination">
         {% if posts.has_previous %}
-          <a href="?page={{ posts.previous_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}"
-             class="btn btn-outline btn-sm">← Previous</a>
+          <a href="?page={{ posts.previous_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.trending %}&trending=true{% endif %}"
+             class="btn-outline">← Previous</a>
         {% endif %}
-        <span style="padding:6px 14px;font-size:13px;color:var(--gray-600);">
+        <span style="font-size:13px;color:var(--gray-500,#6b7280);padding:0 8px;">
           Page {{ posts.number }} of {{ posts.paginator.num_pages }}
         </span>
         {% if posts.has_next %}
-          <a href="?page={{ posts.next_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}"
-             class="btn btn-outline btn-sm">Next →</a>
+          <a href="?page={{ posts.next_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.trending %}&trending=true{% endif %}"
+             class="btn-outline">Next →</a>
         {% endif %}
       </div>
       {% endif %}
@@ -112,7 +512,7 @@
         <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2z"/>
         </svg>
-        <p>No stories yet. <a href="{% url 'post_create' %}" style="text-decoration:underline;">Write the first one →</a></p>
+        <p>No stories yet. <a href="{% url 'post_create' %}">Write the first one →</a></p>
       </div>
     {% endif %}
   </div>
@@ -121,10 +521,10 @@
   <aside class="feed-sidebar">
 
     {% if not user.is_authenticated %}
-    <div class="sidebar-section" style="background:var(--gray-50);padding:24px;border-radius:4px;margin-bottom:32px;">
-      <p style="font-family:var(--font-serif);font-size:22px;font-weight:700;margin-bottom:8px;">Start reading.</p>
-      <p style="font-size:14px;color:var(--gray-600);margin-bottom:16px;">Create a free account to follow authors, clap for stories, and more.</p>
-      <a href="{% url 'register' %}" class="btn btn-dark btn-full" style="border-radius:4px;">Get started — it's free</a>
+    <div class="signup-card">
+      <h3>Start reading.</h3>
+      <p>Create a free account to follow authors, clap for stories, and more.</p>
+      <a href="{% url 'register' %}" class="btn-dark">Get started — it's free</a>
     </div>
     {% endif %}
 
@@ -143,14 +543,15 @@
       {% for profile in suggested_authors %}
       <div class="sidebar-author">
         <img src="{{ profile.profile_image.url|default:'/static/img/avatar.png' }}" alt="{{ profile.user.username }}" />
-        <div>
+        <div style="flex:1;min-width:0;">
           <p class="sidebar-author-name">{{ profile.user.username }}</p>
           <p class="sidebar-author-bio">{{ profile.bio|truncatechars:60 }}</p>
         </div>
         {% if user.is_authenticated %}
-        <form method="POST" action="{% url 'follow_user' profile.user.username %}" style="margin-left:auto;">
+        <!-- ✅ Follow — normal form, redirect hoga JSON nahi -->
+        <form method="POST" action="{% url 'follow_user' profile.user.username %}">
           {% csrf_token %}
-          <button type="submit" class="btn btn-outline btn-sm">Follow</button>
+          <button type="submit" class="btn-follow">Follow</button>
         </form>
         {% endif %}
       </div>
@@ -160,5 +561,152 @@
 
   </aside>
 </div>
+
+<!-- ✅ SINGLE SHARED DROPDOWN — body ke direct child, koi bhi clip nahi karega -->
+<div id="shared-dropdown" class="more-dropdown" style="display:none;">
+  <a id="dd-read" href="#">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Read story
+  </a>
+  <a id="dd-author" href="#">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    View author
+  </a>
+  <div id="dd-owner-section">
+    <div class="divider"></div>
+    <a id="dd-edit" href="#">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Edit story
+    </a>
+    <div class="divider"></div>
+    <a id="dd-delete" href="#" class="danger">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      Delete story
+    </a>
+  </div>
+  <div id="dd-guest-section">
+    <div class="divider"></div>
+    <button id="dd-report" class="danger">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+      Report story
+    </button>
+  </div>
+</div>
+
+<script>
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Bookmark AJAX ─────────────────────────────────────────────
+document.querySelectorAll('.bookmark-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const url  = btn.dataset.url;
+    const csrf = btn.dataset.csrf;
+    const svg  = btn.querySelector('svg');
+    try {
+      const res  = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
+      if (data.bookmarked) {
+        btn.classList.add('bookmarked');
+        svg.setAttribute('fill', 'currentColor');
+        btn.title = 'Remove bookmark';
+        showToast('📌 Bookmarked!');
+      } else {
+        btn.classList.remove('bookmarked');
+        svg.setAttribute('fill', 'none');
+        btn.title = 'Bookmark';
+        showToast('Bookmark removed');
+      }
+    } catch(e) { showToast('Kuch galat ho gaya.'); }
+  });
+});
+
+// ── Shared Dropdown Portal ────────────────────────────────────
+const dropdown    = document.getElementById('shared-dropdown');
+const ddRead      = document.getElementById('dd-read');
+const ddAuthor    = document.getElementById('dd-author');
+const ddEdit      = document.getElementById('dd-edit');
+const ddDelete    = document.getElementById('dd-delete');
+const ddReport    = document.getElementById('dd-report');
+const ddOwnerSec  = document.getElementById('dd-owner-section');
+const ddGuestSec  = document.getElementById('dd-guest-section');
+
+// Body ka direct child banao — koi bhi parent overflow clip nahi kar sakega
+document.body.appendChild(dropdown);
+
+function closeDropdown() {
+  dropdown.style.display = 'none';
+}
+
+document.querySelectorAll('.more-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    // Agar pehle se open hai toh band karo
+    if (dropdown.style.display === 'block') {
+      closeDropdown();
+      return;
+    }
+
+  
+    const detailUrl = btn.dataset.detailUrl;
+    const authorUrl = btn.dataset.authorUrl;
+    const editUrl   = btn.dataset.editUrl;
+    const deleteUrl = btn.dataset.deleteUrl;
+    const isOwner   = btn.dataset.isOwner === '1';
+    const slug      = btn.dataset.slug;
+    ddRead.href   = detailUrl;
+    ddAuthor.href = authorUrl;
+
+    if (isOwner) {
+      ddEdit.href    = editUrl;
+      ddDelete.href  = deleteUrl;
+      ddOwnerSec.style.display = 'block';
+      ddGuestSec.style.display = 'none';
+    } else {
+      ddOwnerSec.style.display = 'none';
+      ddGuestSec.style.display = 'block';
+      ddReport.onclick = () => {
+        closeDropdown();
+        showToast('Report bhej diya. Shukriya!');
+      };
+    }
+
+
+    const rect      = btn.getBoundingClientRect();
+    const dropWidth = 200;
+    dropdown.style.display = 'block';
+
+   
+    let left = rect.right - dropWidth;
+    if (left < 8) left = 8;
+    dropdown.style.left = left + 'px';
+    dropdown.style.top  = (rect.bottom + window.scrollY + 6) + 'px';
+    dropdown.style.position = 'absolute';
+  });
+});
+
+// Bahar click pe band karo
+document.addEventListener('click', (e) => {
+  if (!dropdown.contains(e.target)) closeDropdown();
+});
+
+// Scroll pe band karo
+window.addEventListener('scroll', closeDropdown, { passive: true });
+
+// Report function global
+function reportPost(slug) {
+  closeDropdown();
+  showToast('Report bhej diya. Shukriya!');
+}
+</script>
 
 {% endblock %}

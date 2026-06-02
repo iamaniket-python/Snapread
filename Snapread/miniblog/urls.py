@@ -1,6 +1,11 @@
 from django.urls import path
 from . import views
 from .views import CustomPasswordChangeView
+from miniblog import views as miniblog_views  
+ 
+handler404 = 'miniblog.views.custom_404'
+handler500 = 'miniblog.views.custom_500'
+
 
 urlpatterns = [
 
@@ -66,4 +71,5 @@ urlpatterns = [
     path('history/', views.read_history, name='read_history'),
 
     path('password-change/', CustomPasswordChangeView.as_view(), name='password_change'),
+    
 ]

@@ -1,20 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "cd Snapread && python manage.py collectstatic --noinput",
   "builds": [
     {
-      "src": "Snapread/Snapread/wsgi.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.12"
-      }
+      "src": "manage.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "Snapread/Snapread/wsgi.py"
+      "dest": "Snapread/wsgi.py"
     }
   ]
 }

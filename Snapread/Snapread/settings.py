@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
+    'cloudinary',
+    'cloudinary_storage',
 
     # Local Apps
     'miniblog.apps.MiniblogConfig',
@@ -46,7 +48,7 @@ INSTALLED_APPS = [
 # ============================================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files Vercel ke liye
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -85,7 +87,7 @@ WSGI_APPLICATION = 'Snapread.wsgi.application'
 
 
 # ============================================================
-# DATABASE
+# DATABASE (Supabase PostgreSQL)
 # ============================================================
 DATABASES = {
     'default': dj_database_url.config(
@@ -142,22 +144,19 @@ SIMPLE_JWT = {
 # ============================================================
 CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 
-# Production mein specific origins daalo
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    # 'https://your-frontend.vercel.app',  # Apna frontend URL yahan daalo
-]
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:3000,http://127.0.0.1:3000'
+).split(',')
 
 
 # ============================================================
 # CSRF
 # ============================================================
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1:8000',
-    'http://localhost:8000',
-    # 'https://your-backend.vercel.app',  # Apna backend URL yahan daalo
-]
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://127.0.0.1:8000,http://localhost:8000'
+).split(',')
 
 
 # ============================================================
@@ -181,7 +180,7 @@ USE_TZ = True
 
 
 # ============================================================
-# STATIC FILES (Whitenoise se Vercel par serve hoga)
+# STATIC FILES (Whitenoise)
 # ============================================================
 STATIC_URL = '/static/'
 
@@ -195,10 +194,17 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # ============================================================
-# MEDIA FILES
+# MEDIA FILES (Cloudinary)
 # ============================================================
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 # ============================================================
@@ -212,3 +218,14 @@ LOGIN_REDIRECT_URL = '/'
 # DEFAULT PRIMARY KEY
 # ============================================================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ============================================================
+# SECURITY HEADERS (Production)
+# ============================================================
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

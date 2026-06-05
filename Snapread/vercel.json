@@ -1,9 +1,16 @@
 {
   "version": 2,
+  "rootDirectory": "Snapread",
   "builds": [
     {
-      "src": "manage.py",
+      "src": "Snapread/wsgi.py",
       "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "Snapread/wsgi.py"
     }
   ]
 }

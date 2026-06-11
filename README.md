@@ -91,7 +91,3 @@ Full Stack Developer specializing in Django, Python, PostgreSQL, JavaScript, and
 
 This project is developed for educational and portfolio purposes.
 
-⭐ If you like this project, consider giving it a star on GitHub!
-Render
-Railway
-Vercel (Frontend)

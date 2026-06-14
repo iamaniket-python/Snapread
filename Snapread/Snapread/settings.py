@@ -178,7 +178,8 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-
+print("TEST_VAR:", os.environ.get("TEST_VAR"))
+print("CLOUDINARY_CLOUD_NAME:", os.environ.get("CLOUDINARY_CLOUD_NAME"))
 # ============================================================
 # STATIC FILES (Whitenoise)
 # ============================================================

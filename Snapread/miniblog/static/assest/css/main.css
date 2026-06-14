@@ -2181,3 +2181,36 @@ a:focus-visible, button:focus-visible,
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+.post-card-info,
+.pf-stat-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 4px;
+}
+
+.post-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.post-stat svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.65;
+}
+
+.post-stat-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--gray-400);
+  flex-shrink: 0;
+}

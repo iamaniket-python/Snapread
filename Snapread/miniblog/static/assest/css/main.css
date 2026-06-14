@@ -125,7 +125,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 .dropdown {
-  display: none;
   position: absolute; top: calc(100% + 8px); right: 0;
   background: var(--white);
   border: 1px solid var(--gray-200);
@@ -1976,3 +1975,209 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     align-items: center;
     gap: 5px;
   }
+
+  /* ═══════════════════════════════════════
+   RESPONSIVE / MOBILE FIXES
+═══════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* Navbar */
+  .nav-container { padding: 0 12px; gap: 10px; }
+  .nav-logo { font-size: 20px; }
+  .nav-center { display: none; }
+  .nav-right { gap: 6px; }
+  .btn { padding: 6px 12px; font-size: 13px; }
+  .btn span { display: none; }
+
+  /* Feed layout */
+  .feed-layout { padding: 16px 12px; gap: 24px; }
+  .tags-bar { padding: 0 12px; }
+
+  /* Post cards */
+  .post-card {
+    grid-template-columns: 1fr;
+    padding: 20px 0;
+    gap: 12px;
+  }
+  .post-card-thumb {
+    width: 100%;
+    height: 180px;
+    order: -1;
+  }
+  .post-card h2 { font-size: 18px; }
+  .post-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  /* Post detail */
+  .post-detail-wrap, .pd-wrap { padding: 24px 16px 60px; }
+  .post-detail-title, .pd-title { font-size: 28px; }
+  .post-detail-subtitle { font-size: 17px; }
+  .post-body, .pd-body { font-size: 17px; }
+  .post-body h2, .pd-body h2 { font-size: 22px; }
+  .post-body h3, .pd-body h3 { font-size: 19px; }
+
+  .post-author-bar, .pd-author-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .pd-tags { margin-left: 0; width: 100%; }
+  .pd-action-bar { gap: 8px; }
+
+  /* Floating action bar */
+  .floating-bar, .pd-floating-bar {
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+    transform: none;
+    width: calc(100% - 24px);
+    justify-content: space-around;
+    padding: 10px 12px;
+    overflow-x: auto;
+  }
+
+  /* Auth pages */
+  .auth-wrap { padding: 24px 16px; }
+  .auth-box { max-width: 100%; }
+
+  /* Editor */
+  .editor-wrap { padding: 24px 16px; }
+  .editor-title { font-size: 28px; }
+  .editor-content { font-size: 17px; }
+  .editor-toolbar { gap: 6px; }
+
+  /* Profile */
+  .profile-wrap, .profile-page { padding: 24px 16px 60px; gap: 24px; }
+  .profile-sidebar { border-left: none; padding-left: 0; border-top: 1px solid var(--gray-200); padding-top: 24px; }
+  .profile-avatar { width: 64px; height: 64px; }
+  .profile-name { font-size: 20px; }
+
+  /* Post items in profile */
+  .post-item { flex-direction: column-reverse; gap: 12px; }
+  .post-thumb { width: 100%; height: 160px; }
+  .post-title-text { font-size: 18px; }
+
+  /* Comments */
+  .comments-section, .pd-comments-title { margin-top: 32px; }
+  .pd-replies { margin-left: 16px; padding-left: 12px; }
+
+  /* Modal */
+  .modal-box { padding: 28px 20px 24px; }
+
+  /* Notifications & bookmarks */
+  .notif-wrap, .bookmarks-wrap { padding: 24px 16px; }
+}
+
+@media (max-width: 480px) {
+  .nav-logo { font-size: 18px; }
+  .post-card-thumb { height: 160px; }
+  .pd-title, .post-detail-title { font-size: 24px; }
+  .auth-logo { font-size: 26px; }
+}
+
+/* ═══════════════════════════════════════
+   SMOOTH UX ENHANCEMENTS
+═══════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth transitions on interactive elements */
+a, button, .btn, .icon-btn, .nav-icon, .post-card-thumb img,
+.pd-clap-btn, .pd-bookmark-btn, .fb-btn, .toolbar-btn,
+.tag-pill, .ptab, .profile-tab, .dropdown {
+  transition: all 0.2s ease;
+}
+
+/* Subtle hover lift on post cards */
+.post-card, .post-item {
+  transition: background-color 0.2s ease;
+}
+.post-card:hover, .post-item:hover {
+  background-color: var(--gray-50);
+  border-radius: var(--radius);
+}
+
+/* Image zoom on hover */
+.post-card-thumb, .post-thumb img, .pd-featured-img-wrap img {
+  transition: transform 0.3s ease;
+}
+.post-card:hover .post-card-thumb,
+.post-item:hover .post-thumb img {
+  transform: scale(1.03);
+}
+
+/* Smooth dropdown animation */
+.dropdown {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  visibility: hidden;
+  display: block;
+  pointer-events: none;
+}
+.dropdown.open {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Smooth button press feedback */
+.btn:active, .icon-btn:active, .pd-clap-btn:active,
+.fb-btn:active, .toolbar-btn:active {
+  transform: scale(0.96);
+}
+
+/* Smooth page fade-in */
+.main-content {
+  animation: fadeIn 0.35s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Smooth alert slide-in */
+.alert {
+  animation: slideIn 0.25s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Smooth modal */
+.modal-overlay {
+  transition: background 0.25s ease;
+}
+
+/* Scrollbar polish (Webkit) */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--gray-200);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* Skeleton-style image loading background */
+img {
+  background-color: var(--gray-100);
+}
+
+/* Smooth focus ring */
+a:focus-visible, button:focus-visible,
+.form-control:focus-visible, .icon-btn:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

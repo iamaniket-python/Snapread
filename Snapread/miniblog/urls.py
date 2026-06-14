@@ -63,13 +63,14 @@ urlpatterns = [
     path('notifications/',          views.notification_list,      name='notification_list'),
     path('notifications/read-all/', views.mark_notifications_read, name='notifications_read_all'),
     path('notifications/mark-read/', views.mark_notifications_read, name='mark_notifications_read'),
+    path('notifications/<int:notif_id>/open/', views.notification_open, name='notification_open'),
     path('search/', views.search_view, name='search'),
 
     # ─────────────────────────────────────────
     # READ HISTORY
     # ─────────────────────────────────────────
     path('history/', views.read_history, name='read_history'),
-
+ 
     path('password-change/', CustomPasswordChangeView.as_view(), name='password_change'),
     
 ]

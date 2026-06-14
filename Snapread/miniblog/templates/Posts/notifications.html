@@ -31,7 +31,7 @@
   {% if notifications %}
     <div class="notif-list">
       {% for notif in notifications %}
-      <div class="notif-item {% if not notif.is_read %}unread{% endif %}">
+      <a href="{% url 'notification_open' notif.id %}" class="notif-item {% if not notif.is_read %}unread{% endif %}">
 
         <!-- Icon -->
         <div class="notif-icon">
@@ -64,19 +64,19 @@
             {% if notif.notif_type == 'clap' %}
               <strong>{{ notif.sender.username }}</strong> ne aapki story ko clap kiya
               {% if notif.post %}
-                &mdash; <a href="{% url 'post_detail' notif.post.slug %}" class="notif-link">{{ notif.post.title }}</a>
+                &mdash; <span class="notif-link">{{ notif.post.title }}</span>
               {% endif %}
 
             {% elif notif.notif_type == 'comment' %}
               <strong>{{ notif.sender.username }}</strong> ne aapki story pe comment kiya
               {% if notif.post %}
-                &mdash; <a href="{% url 'post_detail' notif.post.slug %}" class="notif-link">{{ notif.post.title }}</a>
+                &mdash; <span class="notif-link">{{ notif.post.title }}</span>
               {% endif %}
 
             {% elif notif.notif_type == 'reply' %}
               <strong>{{ notif.sender.username }}</strong> ne aapke comment ka reply diya
               {% if notif.post %}
-                &mdash; <a href="{% url 'post_detail' notif.post.slug %}" class="notif-link">{{ notif.post.title }}</a>
+                &mdash; <span class="notif-link">{{ notif.post.title }}</span>
               {% endif %}
 
             {% elif notif.notif_type == 'follow' %}
@@ -94,7 +94,7 @@
           <span class="notif-dot"></span>
         {% endif %}
 
-      </div>
+      </a>
       {% endfor %}
     </div>
 

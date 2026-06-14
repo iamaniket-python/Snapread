@@ -621,6 +621,22 @@ def mark_notifications_read(request):
         messages.error(request, 'Notifications mark nahi ho sakin.')
     return redirect('notification_list')
 
+    
+@login_required
+def notification_open(request, notif_id):
+    notif = get_object_or_404(Notification, id=notif_id, recipient=request.user)
+
+    if not notif.is_read:
+        notif.is_read = True
+        notif.save(update_fields=['is_read'])
+
+    if notif.notif_type == 'follow':
+        return redirect('profile', username=notif.sender.username)
+
+    if notif.post:
+        return redirect('post_detail', slug=notif.post.slug)
+
+    return redirect('notification_list')
 
 # ═══════════════════════════════════════════
 # SEARCH

@@ -50,15 +50,15 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   border-bottom: 1px solid var(--gray-200);
 }
 
-.nav-container {
-  max-width: var(--max-w);
-  margin: 0 auto;
-  padding: 0 24px;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
+.nav-container { padding: 0 12px; gap: 10px; flex-wrap: wrap; }
+  .nav-logo { font-size: 20px; }
+  .nav-center {
+    flex: 1 1 100%;
+    order: 3;
+    max-width: 100%;
+    margin-top: 8px;
+  }
+  .nav-right { gap: 6px; }
 
 .nav-logo {
   font-family: var(--font-serif);
@@ -2213,4 +2213,10 @@ a:focus-visible, button:focus-visible,
   border-radius: 50%;
   background: var(--gray-400);
   flex-shrink: 0;
+}
+
+.notif-item {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }

@@ -166,6 +166,12 @@ def post_feed(request):
     if trending:
         posts = posts.order_by('-views', '-created_at')
 
+    matched_users = None
+    if search:
+        matched_users = User.objects.filter(
+            username__icontains=search
+        ).select_related('profile')[:5]
+
     paginator = Paginator(posts, 10)
     page      = request.GET.get('page')
     posts     = paginator.get_page(page)
@@ -180,8 +186,8 @@ def post_feed(request):
         'selected_tag':      tag,
         'selected_category': category,
         'search':            search,
+        'matched_users':     matched_users,
     })
-
 
 def post_detail(request, slug):
     post = get_object_or_404(
@@ -621,7 +627,7 @@ def mark_notifications_read(request):
         messages.error(request, 'Notifications mark nahi ho sakin.')
     return redirect('notification_list')
 
-    
+
 @login_required
 def notification_open(request, notif_id):
     notif = get_object_or_404(Notification, id=notif_id, recipient=request.user)

@@ -202,11 +202,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # MEDIA FILES (Cloudinary)
 # ============================================================
 MEDIA_URL = '/media/'
+from urllib.parse import urlparse
+cloudinary_url = os.environ.get('CLOUDINARY_URL', '')
+parsed = urlparse(cloudinary_url)
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
+    'CLOUD_NAME': parsed.hostname or '',
+    'API_KEY': parsed.username or '',
+    'API_SECRET': parsed.password or '',
 }
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 

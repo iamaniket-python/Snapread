@@ -1,15 +1,10 @@
+import os
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-import os
-from pathlib import Path
-from datetime import timedelta
-from decouple import config
-import dj_database_url
 # ============================================================
 # SECURITY
 # ============================================================
@@ -182,8 +177,7 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-print("TEST_VAR:", os.environ.get("TEST_VAR"))
-print("CLOUDINARY_CLOUD_NAME:", os.environ.get("CLOUDINARY_CLOUD_NAME"))
+
 # ============================================================
 # STATIC FILES (Whitenoise)
 # ============================================================

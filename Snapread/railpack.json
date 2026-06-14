@@ -1,15 +1,15 @@
 {
- 
   "provider": "python",
   "buildAptPackages": [],
   "steps": {
     "install": {
       "commands": [
-        "cd Snapread && pip install -r requirements.txt"
+        "pip install -r requirements.txt",
+        "python manage.py collectstatic --noinput"
       ]
     }
   },
   "deploy": {
-    "startCommand": "cd Snapread && python manage.py migrate && gunicorn snapread.wsgi:application --bind 0.0.0.0:$PORT"
+    "startCommand": "python manage.py migrate && gunicorn Snapread.wsgi:application --bind 0.0.0.0:$PORT"
   }
 }

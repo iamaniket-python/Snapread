@@ -1,3 +1,5 @@
+from datetime import time
+
 from django.core.cache import cache
 import logging
 
@@ -145,6 +147,8 @@ def logout_view(request):
 # ═══════════════════════════════════════════
 
 def post_feed(request):
+    start = time.time()
+    
     posts = Post.objects.filter(
         status='published'
     ).select_related('author', 'author__profile', 'category').prefetch_related(
@@ -173,23 +177,27 @@ def post_feed(request):
             username__icontains=search
         ).select_related('profile')[:5]
 
+    logger.info(f"[TIMING] Before pagination: {time.time() - start:.3f}s")
+
     paginator = Paginator(posts, 10)
     page      = request.GET.get('page')
     posts     = paginator.get_page(page)
 
-    # ✅ Cached tags (5 min)
+    logger.info(f"[TIMING] After pagination: {time.time() - start:.3f}s")
+
     tags = cache.get('feed_tags')
     if tags is None:
         tags = list(Tag.objects.annotate(post_count=Count('post')).order_by('-post_count')[:20])
         cache.set('feed_tags', tags, 300)
 
-    # ✅ Cached categories (5 min)
     categories = cache.get('feed_categories')
     if categories is None:
         categories = list(Category.objects.all())
         cache.set('feed_categories', categories, 300)
 
-    return render(request, 'Posts/feed.html', {
+    logger.info(f"[TIMING] After cache: {time.time() - start:.3f}s")
+
+    response = render(request, 'Posts/feed.html', {
         'posts':             posts,
         'categories':        categories,
         'tags':              tags,
@@ -198,6 +206,9 @@ def post_feed(request):
         'search':            search,
         'matched_users':     matched_users,
     })
+
+    logger.info(f"[TIMING] After render: {time.time() - start:.3f}s")
+    return response
 
 def post_detail(request, slug):
     post = get_object_or_404(

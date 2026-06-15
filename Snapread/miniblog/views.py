@@ -1,4 +1,4 @@
-from datetime import time
+import time
 
 from django.core.cache import cache
 import logging

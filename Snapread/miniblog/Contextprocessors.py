@@ -20,12 +20,18 @@ def global_context(request):
 
 def Notifications_processor(request):
     if request.user.is_authenticated:
-        # pehle filter karo, phir slice lo
-        all_notifs = request.user.notifications.order_by('-created_at')
+        all_notifs = request.user.notifications.select_related(
+            'sender', 'sender__profile', 'post'
+        ).order_by('-created_at')
+        
         unread_count = all_notifs.filter(is_read=False).count()
-        notifs = all_notifs[:5]  # slice BAAD mein
+        notifs = all_notifs[:5]
+        
         return {
             'notifications': notifs,
             'unread_count': unread_count,
         }
-    return {}
+    return {
+        'notifications': [],
+        'unread_count': 0,
+    }

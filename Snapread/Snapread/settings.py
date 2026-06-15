@@ -74,7 +74,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'miniblog.Contextprocessors.global_context',
+             
                 'miniblog.Contextprocessors.Notifications_processor',
             ],
         },
@@ -91,11 +91,17 @@ WSGI_APPLICATION = 'Snapread.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default=config('DATABASE_URL'),
-        conn_max_age=0, 
+        conn_max_age=600,
+        conn_health_checks=True,
         ssl_require=not config('DEBUG', default=False, cast=bool),
     )
 }
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+    }
+}
 # ============================================================
 # AUTHENTICATION
 # ============================================================

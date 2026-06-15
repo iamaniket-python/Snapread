@@ -1,3 +1,4 @@
+from functools import cache
 import logging
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -176,8 +177,17 @@ def post_feed(request):
     page      = request.GET.get('page')
     posts     = paginator.get_page(page)
 
-    categories = Category.objects.all()
-    tags       = Tag.objects.annotate(post_count=Count('post')).order_by('-post_count')[:20]
+    # ✅ Cached tags (5 min)
+    tags = cache.get('feed_tags')
+    if tags is None:
+        tags = list(Tag.objects.annotate(post_count=Count('post')).order_by('-post_count')[:20])
+        cache.set('feed_tags', tags, 300)
+
+    # ✅ Cached categories (5 min)
+    categories = cache.get('feed_categories')
+    if categories is None:
+        categories = list(Category.objects.all())
+        cache.set('feed_categories', categories, 300)
 
     return render(request, 'Posts/feed.html', {
         'posts':             posts,

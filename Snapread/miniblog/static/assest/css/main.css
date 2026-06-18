@@ -1308,6 +1308,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   overflow: hidden;
   margin-bottom: 40px;
   background: #f3f4f6;
+  display:flex;
   aspect-ratio: 16 / 9; 
   align-items: center;
   justify-content: center;

@@ -22,7 +22,7 @@ class Profile(models.Model):
         upload_to='profiles/',
         blank=True,
         null=True,
-        max_length=500 
+        max_length=500
     )
     website = models.URLField(blank=True, null=True)
 
@@ -41,13 +41,11 @@ class Profile(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        # ✅ FIX: Compress & resize profile image before saving
         if self.profile_image:
             try:
                 from PIL import Image
                 img = Image.open(self.profile_image)
 
-                # Convert RGBA/P to RGB (JPEG doesn't support transparency)
                 if img.mode in ('RGBA', 'P', 'LA'):
                     background = Image.new('RGB', img.size, (255, 255, 255))
                     if img.mode == 'P':
@@ -57,26 +55,32 @@ class Profile(models.Model):
                 elif img.mode != 'RGB':
                     img = img.convert('RGB')
 
-                # Resize to max 400x400 (profile pic — no need for more)
                 max_size = (400, 400)
                 img.thumbnail(max_size, Image.LANCZOS)
 
-                # Save compressed version back
                 buffer = BytesIO()
                 img.save(buffer, format='JPEG', quality=85, optimize=True)
                 buffer.seek(0)
 
-                # Keep original filename but force .jpg extension
                 name = os.path.splitext(self.profile_image.name)[0]
                 self.profile_image.save(
                     f"{name}.jpg",
                     ContentFile(buffer.read()),
-                    save=False  # prevent infinite loop
+                    save=False
                 )
             except Exception:
-                pass  # if Pillow fails, just save original — don't break the view
+                pass
 
         super().save(*args, **kwargs)
+
+    @property
+    def avatar_url(self):
+        try:
+            if self.profile_image and self.profile_image.name:
+                return self.profile_image.url
+        except Exception:
+            pass
+        return '/static/img/avatar.png'
 
     def __str__(self):
         return self.user.username
@@ -199,6 +203,15 @@ class Post(models.Model):
     def increment_views(self):
         from django.db.models import F
         Post.objects.filter(pk=self.pk).update(views=F('views') + 1)
+
+    @property
+    def featured_image_url(self):
+        try:
+            if self.featured_image and self.featured_image.name:
+                return self.featured_image.url
+        except Exception:
+            pass
+        return None
 
     def __str__(self):
         return self.title

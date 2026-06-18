@@ -1958,12 +1958,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* Post Thumbnail */
 .post-thumb {
   width: 180px;
-  height: 160px;
+  height: 200px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   flex-shrink: 0;
   background: var(--gray-100);
   display: flex;
+  object-fit: contain;  
   align-items: center;
   justify-content: center;
 }

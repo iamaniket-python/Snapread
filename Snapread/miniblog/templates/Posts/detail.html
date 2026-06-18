@@ -641,18 +641,20 @@
   }
 
   /* ── Delete Modal ── */
-  function openDeleteModal() {
-    var overlay = document.getElementById('deleteModal');
-    if (!overlay) return;
-    overlay.style.display = 'flex';
-    setTimeout(function() { overlay.classList.add('open'); }, 10);
-  }
-  function closeDeleteModal() {
-    var overlay = document.getElementById('deleteModal');
-    if (!overlay) return;
-    overlay.classList.remove('open');
-    setTimeout(function() { overlay.style.display = 'none'; }, 260);
-  }
+  function openCommentDeleteModal(url) {
+  document.getElementById('commentDeleteForm').action = url;
+  var overlay = document.getElementById('commentDeleteModal');
+  overlay.style.display = 'flex';
+  setTimeout(function() { overlay.classList.add('open'); }, 10);
+}
+function closeCommentDeleteModal() {
+  var overlay = document.getElementById('commentDeleteModal');
+  overlay.classList.remove('open');
+  setTimeout(function() { overlay.style.display = 'none'; }, 260);
+}
+document.getElementById('commentDeleteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeCommentDeleteModal();
+});
   var overlay = document.getElementById('deleteModal');
   if (overlay) {
     overlay.addEventListener('click', function(e) {

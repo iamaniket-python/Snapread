@@ -10,14 +10,14 @@ from .models import Profile, Post, Notification
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Automatically creates a Profile when a new User is created."""
+  
     if created:
         Profile.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    """Keeps Profile in sync whenever User is saved."""
+    
     try:
         instance.profile.save()
     except Profile.DoesNotExist:
@@ -30,10 +30,7 @@ def save_user_profile(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Post)
 def notify_followers_on_publish(sender, instance, created, **kwargs):
-    """
-    When a post transitions to 'published', notify all followers of the author.
-    Only fires on update (not create) to avoid duplicate notifications on first publish.
-    """
+
     if not created and instance.status == 'published':
         try:
             author_profile = instance.author.profile

@@ -5,10 +5,7 @@ User = get_user_model()
 
 
 class EmailBackend(ModelBackend):
-    """
-    Custom authentication backend.
-    Username ki jagah email se login karta hai.
-    """
+   
     def authenticate(self, request, email=None, password=None, **kwargs):
         if not email or not password:
             return None

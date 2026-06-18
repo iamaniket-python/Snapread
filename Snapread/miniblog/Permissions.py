@@ -6,11 +6,6 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 # ═══════════════════════════════════════════
 
 class IsAuthorOrReadOnly(BasePermission):
-    """
-    - Read (GET, HEAD, OPTIONS): anyone
-    - Write (POST, PATCH, DELETE): only the object's author/user
-    """
-
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
@@ -29,11 +24,6 @@ class IsAuthorOrReadOnly(BasePermission):
 # ═══════════════════════════════════════════
 
 class IsProfileOwner(BasePermission):
-    """
-    Only the profile owner can edit their profile.
-    Anyone can read it.
-    """
-
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
@@ -50,10 +40,7 @@ class IsProfileOwner(BasePermission):
 # ═══════════════════════════════════════════
 
 class IsVerifiedUser(BasePermission):
-    """
-    Blocks unverified users from write actions.
-    Requires an `is_verified` boolean field on the Profile model.
-    """
+
     message = 'Your account is not verified. Please verify your email to continue.'
 
     def has_permission(self, request, view):
@@ -72,11 +59,6 @@ class IsVerifiedUser(BasePermission):
 # ═══════════════════════════════════════════
 
 class IsAdminOrReadOnly(BasePermission):
-    """
-    Only Django staff/superusers can write.
-    Everyone can read.
-    Used for Category and Tag management.
-    """
 
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
@@ -89,11 +71,6 @@ class IsAdminOrReadOnly(BasePermission):
 # ═══════════════════════════════════════════
 
 class IsOwner(BasePermission):
-    """
-    Generic ownership check.
-    Object must have a `user` field pointing to the owner.
-    Used for Bookmarks, ReadHistory, Notifications.
-    """
 
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user
@@ -104,10 +81,7 @@ class IsOwner(BasePermission):
 # ═══════════════════════════════════════════
 
 class IsAuthenticatedAndVerified(BasePermission):
-    """
-    Combined check: user must be authenticated AND email-verified.
-    Useful for sensitive actions like monetization, paywall management.
-    """
+    
     message = 'Authentication and email verification required.'
 
     def has_permission(self, request, view):

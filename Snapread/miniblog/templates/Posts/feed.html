@@ -512,21 +512,11 @@
         <div class="post-card-body">
           <!-- Author -->
           <div class="post-card-meta">
-            {% if post.author.profile.profile_image and
-            post.author.profile.profile_image.name %}
             <img
-              src="{{ post.author.profile.profile_image.url }}"
+              src="{{ post.author.profile.avatar_url }}"
               alt="{{ post.author.username }}"
               class="post-card-avatar"
             />
-            {% else %}
-            <img
-              src="{% static 'img/avatar.png' %}"
-              alt="{{ post.author.username }}"
-              class="post-card-avatar"
-            />
-            {% endif %} alt="{{ post.author.username }}"
-            class="post-card-avatar" />
             <a
               href="{% url 'profile' post.author.username %}"
               class="post-card-author"
@@ -534,9 +524,7 @@
               {{ post.author.username }}
             </a>
             <span class="post-card-dot">·</span>
-            <span class="post-card-date"
-              >{{ post.published_at|date:"M d, Y" }}</span
-            >
+            <span class="post-card-date">{{ post.published_at|date:"M d, Y" }}</span>
           </div>
 
           <!-- Title & Excerpt -->
@@ -551,10 +539,7 @@
           <div class="post-card-footer">
             <div class="post-card-info">
               {% if post.category %}
-              <a
-                href="?category={{ post.category.slug }}"
-                class="post-card-tag"
-              >
+              <a href="?category={{ post.category.slug }}" class="post-card-tag">
                 {{ post.category.name }}
               </a>
               {% endif %}
@@ -565,7 +550,7 @@
             <div class="post-card-actions">
               {% if user.is_authenticated %}
 
-              <!-- ✅ Bookmark Button (AJAX) -->
+              <!-- Bookmark Button (AJAX) -->
               <button
                 class="icon-btn bookmark-btn {% if post.slug in user_bookmarked_slugs %}bookmarked{% endif %}"
                 title="{% if post.slug in user_bookmarked_slugs %}Remove bookmark{% else %}Bookmark{% endif %}"
@@ -585,7 +570,7 @@
                 </svg>
               </button>
 
-              <!-- ✅ Three-dot Menu -->
+              <!-- Three-dot Menu -->
               <div class="more-menu-wrap">
                 <button
                   class="icon-btn more-btn"
@@ -597,12 +582,7 @@
                   data-author-url="{% url 'profile' post.author.username %}"
                   data-is-owner="{% if post.author == user %}1{% else %}0{% endif %}"
                 >
-                  <svg
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                     <circle cx="5" cy="12" r="1.5" />
                     <circle cx="12" cy="12" r="1.5" />
                     <circle cx="19" cy="12" r="1.5" />
@@ -612,19 +592,8 @@
 
               {% else %}
               <!-- Guest ke liye sirf read link -->
-              <a
-                href="{% url 'post_detail' post.slug %}"
-                class="icon-btn"
-                title="Read"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  viewBox="0 0 24 24"
-                >
+              <a href="{% url 'post_detail' post.slug %}" class="icon-btn" title="Read">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
@@ -635,15 +604,16 @@
         </div>
 
         <!-- Thumbnail -->
-        {% if post.featured_image %}
+        {% if post.featured_image_url %}
         <a href="{% url 'post_detail' post.slug %}">
           <img
-            src="{{ post.featured_image.url }}"
+            src="{{ post.featured_image_url }}"
             alt="{{ post.title }}"
             class="post-card-thumb"
           />
         </a>
         {% endif %}
+
       </article>
       {% endfor %}
     </div>
@@ -655,40 +625,26 @@
       <a
         href="?page={{ posts.previous_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.trending %}&trending=true{% endif %}"
         class="btn-outline"
-        >← Previous</a
-      >
+      >← Previous</a>
       {% endif %}
-      <span
-        style="font-size: 13px; color: var(--gray-500, #6b7280); padding: 0 8px"
-      >
+      <span style="font-size:13px; color:var(--gray-500,#6b7280); padding:0 8px">
         Page {{ posts.number }} of {{ posts.paginator.num_pages }}
       </span>
       {% if posts.has_next %}
       <a
         href="?page={{ posts.next_page_number }}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}{% if request.GET.trending %}&trending=true{% endif %}"
         class="btn-outline"
-        >Next →</a
-      >
+      >Next →</a>
       {% endif %}
     </div>
-    {% endif %} {% else %}
+    {% endif %}
+
+    {% else %}
     <div class="empty-state">
-      <svg
-        width="48"
-        height="48"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2z"
-        />
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2z"/>
       </svg>
-      <p>
-        No stories yet.
-        <a href="{% url 'post_create' %}">Write the first one →</a>
-      </p>
+      <p>No stories yet. <a href="{% url 'post_create' %}">Write the first one →</a></p>
     </div>
     {% endif %}
   </div>
@@ -698,12 +654,8 @@
     {% if not user.is_authenticated %}
     <div class="signup-card">
       <h3>Start reading.</h3>
-      <p>
-        Create a free account to follow authors, clap for stories, and more.
-      </p>
-      <a href="{% url 'register' %}" class="btn-dark"
-        >Get started — it's free</a
-      >
+      <p>Create a free account to follow authors, clap for stories, and more.</p>
+      <a href="{% url 'register' %}" class="btn-dark">Get started — it's free</a>
     </div>
     {% endif %}
 
@@ -722,19 +674,15 @@
       {% for profile in suggested_authors %}
       <div class="sidebar-author">
         <img
-          src="{{ profile.profile_image.url|default:'/static/img/avatar.png' }}"
+          src="{{ profile.avatar_url }}"
           alt="{{ profile.user.username }}"
         />
-        <div style="flex: 1; min-width: 0">
+        <div style="flex:1; min-width:0">
           <p class="sidebar-author-name">{{ profile.user.username }}</p>
           <p class="sidebar-author-bio">{{ profile.bio|truncatechars:60 }}</p>
         </div>
         {% if user.is_authenticated %}
-        <!-- ✅ Follow — normal form, redirect hoga JSON nahi -->
-        <form
-          method="POST"
-          action="{% url 'follow_user' profile.user.username %}"
-        >
+        <form method="POST" action="{% url 'follow_user' profile.user.username %}">
           {% csrf_token %}
           <button type="submit" class="btn-follow">Follow</button>
         </form>
@@ -743,6 +691,7 @@
       {% endfor %}
     </div>
     {% endif %}
+
   </aside>
 </div>
 

@@ -1971,8 +1971,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .post-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;  
   display: block;
+  background: var(--gray-100);
   transition: transform 0.3s ease;
 }
 .post-item:hover .post-thumb img { transform: scale(1.04); }

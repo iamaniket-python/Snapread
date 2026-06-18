@@ -80,7 +80,7 @@ class Profile(models.Model):
                 return self.profile_image.url
         except Exception:
             pass
-        return '/static/img/avatar.png'
+        return '/static/assest/image/avatar.png'
 
     def __str__(self):
         return self.user.username

@@ -1958,7 +1958,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* Post Thumbnail */
 .post-thumb {
   width: 180px;
-  height: 120px;
+  height: 160px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   flex-shrink: 0;
